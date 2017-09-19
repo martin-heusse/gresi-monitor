@@ -25,16 +25,19 @@ $hash=preg_replace('/\//', '_', $hash);
 
 //$reqdate=urlencode($reqdate);
 
+//Build query to retrieve counter serial list
 $args= null;
 $args['mps']=$hash;
 $args['login']=rbusername;
 $args['requestDate']=$reqdate ;
+$listUrl = url_rb_List.http_build_query($args);
+
 $args['startDate']=date("Y-m-d\TH:i:s",time()-3600*24*7); // Last week
 $args['endDate']= $reqdate;
 $args['step']="h" ; // t for ten minutes steps
-$args['serialNumber']=c1serial ;
+$args['serialNumber']="" ; //c1serial -- counter serial number, now dynamically retrieved
 
-$url = url_rb_ProdRad.http_build_query($args);
+$dataUrl = url_rb_ProdRad.http_build_query($args);
 
 
 //echo file_get_contents($url);
@@ -45,7 +48,8 @@ $url = url_rb_ProdRad.http_build_query($args);
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="./monitoring.js"> </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
-  <input type=hidden id=dataUrl value = "<?php print( $url ); ?>"/>
+  <input type=hidden id=listUrl value = "<?php print( $listUrl ); ?>"/>
+  <input type=hidden id=dataUrl value = "<?php print( $dataUrl ); ?>"/>
   <canvas id="myChart" width="600" height="400"></canvas> 
 </body>
 </html>

@@ -1,16 +1,20 @@
-
-
-function retrieveData(dataLoc) {
-    $.getJSON(dataLoc, function(result){
+function retrieveCounters(listLoc,dataLoc) {
+    // Get the list of serial numbers and plot the data
+    $.getJSON(listLoc, function(result){
+		    retrieveData(result.list[0],dataLoc) ;
+	});
+}
+function retrieveData(serialNum,dataLoc) {
+    $.getJSON(dataLoc+serialNum, function(result){
 	    let myLabels=[];
 	    let myData=[];
+	    console.log(serialNum);
 	    result.records.forEach(function(item) {
 		    myLabels.push(item.measureDate);
 		    myData.push(item.measure);
 		});  
-	    console.log(result);
-	    var ctx = document.getElementById('myChart').getContext('2d');
-	    var chart = new Chart(ctx, {
+	    let ctx = document.getElementById('myChart').getContext('2d');
+	    let chart = new Chart(ctx, {
 		    // The type of chart we want to create
 		    type: 'line',
 		    
@@ -18,7 +22,7 @@ function retrieveData(dataLoc) {
 		    data: {
 			labels:myLabels,
 			datasets: [{
-				label: "First counter",
+				label: serialNum,
 				backgroundColor: 'yellow',
 				borderColor: 'black',
 				data: myData
@@ -33,7 +37,7 @@ function retrieveData(dataLoc) {
 
 
 $( document ).ready(function() {
-	retrieveData( document.getElementById("dataUrl").value);
+	retrieveCounters( document.getElementById("listUrl").value,document.getElementById("dataUrl").value);
     });
 
 
