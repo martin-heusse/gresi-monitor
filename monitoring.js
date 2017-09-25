@@ -3,7 +3,7 @@ let myLabels=[];
 let myData=[];
 
 function retrieveMeters(listLoc,dataLoc) {
-    // Get the list of serial numbers and plot the data
+    // Get the list of serial numbers and call retrieveData() to eventually plot the data
     $.getJSON(listLoc, function(result){
 	    let i=0;
 	    //remove this!!!
@@ -11,12 +11,13 @@ function retrieveMeters(listLoc,dataLoc) {
 	    //end remove this
 	    console.log(result.list);
 	    for (i=0;i<result.list.length;i++){
-		retrieveData(result.list[i],dataLoc,result.list.length) ;
+		    retrieveData(result.list[i],dataLoc,result.list.length) ;
 	    }
 	});
 }
 function retrieveData(serialNum,dataLoc,nbMeters) {
     $.getJSON(dataLoc+serialNum, function(result){
+        // Process the data that was just fetched
 	    console.log(serialNum);
 	    let ithMeterData=[];
 	    myLabels=[];
@@ -32,8 +33,9 @@ function retrieveData(serialNum,dataLoc,nbMeters) {
 			});
 	    nbMeterDone++;
 	    console.log(nbMeterDone);
+	    // Once all the data is in myData array, plot it
 	    if(nbMeterDone==nbMeters){
-		doPlot();
+		    doPlot();
 	    }
 	});
 }
@@ -54,6 +56,7 @@ function doPlot(){
 	    // Configuration options go here
 	    options: {
 		scales: {
+		    // Add label on Y axes
 		    yAxes: [{
 			    scaleLabel: {
 				display: true,
@@ -68,6 +71,7 @@ function doPlot(){
 
 // This is the function that triggers everything
 $( document ).ready(function() {
+    // The URLs are in 2 hidden elements in the HTML
 	retrieveMeters( document.getElementById("listUrl").value,document.getElementById("dataUrl").value);
     });
 
