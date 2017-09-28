@@ -7,8 +7,8 @@ define('url_rb_ProdRad','https://pvmeter.com/solar/webservices/getDeviceProducti
 
 
 define('c1serial','210225531'); // Serial Farm Big
-define('rbusername','demo'); // username
-define('rbpass','demo69550'); // password
+// define('rbusername','demo'); // username -> in ids.php
+// define('rbpass','demo69550'); // password
 
 
 ?>

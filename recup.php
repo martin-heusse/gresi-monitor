@@ -3,10 +3,14 @@
 <head>
   <meta charset="utf-8">
   <title>Demo</title>
+  <STYLE type="text/css">
+  DIV.sc {font-family: Sans-Serif;}
+ </STYLE>
 </head>
 
 <?php
 require_once "constants.php";
+require_once "ids.php"; // Contains the identifier + Password to connect to RTone web API
 
 //$db = connect_to_db();
 
@@ -47,7 +51,7 @@ $dataUrl = url_rb_ProdRad.http_build_query($args);
 ?>
 
 <body>
-<div>Yo !</div>
+<div id="status" class="sc"><span id="progress">Récupération des données </span><span>></span></div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="./monitoring.js"> </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>

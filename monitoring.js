@@ -1,4 +1,4 @@
-let nbMeterDone=0;
+let nbMeterDone=0,nbMeters=0,nbMetersOK=0;
 let myLabels=[];
 let myData=[];
 
@@ -6,16 +6,14 @@ function retrieveMeters(listLoc,dataLoc) {
     // Get the list of serial numbers and call retrieveData() to eventually plot the data
     $.getJSON(listLoc, function(result){
 	    let i=0;
-	    //remove this!!!
-	    result.list.push(result.list[0]);
-	    //end remove this
-	    console.log(result.list);
+            console.log(result.list);
 	    for (i=0;i<result.list.length;i++){
-		    retrieveData(result.list[i],dataLoc,result.list.length) ;
+	        nbMeters=result.list.length;
+		    setTimeout(retrieveData, i*1000,result.list[i],dataLoc);  // setTimeout programs the calls to retrieveData once/second, in order to comply with rbeesolar policy
 	    }
 	});
 }
-function retrieveData(serialNum,dataLoc,nbMeters) {
+function retrieveData(serialNum,dataLoc) {
     $.getJSON(dataLoc+serialNum, function(result){
         // Process the data that was just fetched
 	    console.log(serialNum);
@@ -23,7 +21,7 @@ function retrieveData(serialNum,dataLoc,nbMeters) {
 	    myLabels=[];
 	    result.records.forEach(function(item) {
 		    myLabels.push(item.measureDate); // overriding previous ones, but it's always the same thing
-		    ithMeterData.push(nbMeterDone==0?item.measure:item.measure/2); // remove ternary !!
+		    ithMeterData.push(item.measure);
 		});  
 
 	    myData.push({label: serialNum,
@@ -31,15 +29,26 @@ function retrieveData(serialNum,dataLoc,nbMeters) {
 			borderColor: `hsl(${(50*nbMeterDone)%360}, 100%,50%)`,
 			data: ithMeterData
 			});
-	    nbMeterDone++;
-	    console.log(nbMeterDone);
-	    // Once all the data is in myData array, plot it
-	    if(nbMeterDone==nbMeters){
-		    doPlot();
-	    }
-	});
+		nbMetersOK++;
+        dataRetrieved("+");
+    })
+    .fail(function() {
+        console.log( "error" + serialNum);
+        dataRetrieved("x");
+    });
 }
 
+function dataRetrieved(statusChar){
+    nbMeterDone++;
+    console.log(nbMeterDone);
+    document.getElementById('progress').innerHTML+=statusChar;
+    // Once all the data is in myData array, plot it
+    if(nbMeterDone==nbMeters){
+        document.getElementById('status').innerHTML=nbMetersOK+" compteurs récupérés !";
+        doPlot();
+    }
+
+}
 
 function doPlot(){
     let ctx = document.getElementById('myChart').getContext('2d');
