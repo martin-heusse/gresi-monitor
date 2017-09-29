@@ -64,15 +64,16 @@ function doPlot(){
 
         // Configuration options go here
         options: {
-        scales: {
+            scales: {
             // Add label on Y axes
             yAxes: [{
                 scaleLabel: {
                 display: true,
                 labelString: 'Wh'
                 }
-            }]
-        }
+                }]
+            },
+            elements: {line: {cubicInterpolationMode: 'monotone'}}
         }
     });
 
