@@ -2,6 +2,7 @@
 
 define('url_rb_List','https://pvmeter.com/solar/webservices/listDevices?'); // list counters Rbee
 define('url_rb_ProdRad','https://pvmeter.com/solar/webservices/getDeviceProductionAndRadiation?'); // data Rbee
+define('url_rb_Prod','https://pvmeter.com/solar/webservices/getDeviceProduction?'); // data Rbee
 // List devices belonging to login
 // $url = "https://pvmeter.com/solar/webservices/listDevices?"
 
