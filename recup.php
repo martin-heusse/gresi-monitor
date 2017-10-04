@@ -67,7 +67,7 @@ $dataUrl10mn = url_rb_Prod.http_build_query($args);
   <canvas id="globalChart"></canvas>
   </div>
   <div>
-  <select id="zoomSelect" onChange="javascript:zoomSelected();"></select>
+  <select id="zoomSelect"" disabled></select>
   <div style="width:100%; height:50%;">
   <canvas id="zoomChart"></canvas>
   </div>

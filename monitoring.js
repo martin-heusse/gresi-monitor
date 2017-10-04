@@ -59,6 +59,7 @@ function dataRetrieved(statusChar,destCanvas){
     if(nbMeterDone==nbMeters){
         document.getElementById('progress').innerHTML=nbMetersOK+" compteur(s) récupéré(s) !";
         document.getElementById('progressEnd').innerHTML="";
+        $("#zoomSelect").prop('disabled', false);
         doPlot(destCanvas);
     }
 
@@ -93,12 +94,6 @@ function doPlot(theChart){
 
 }
 
-// This is the function that triggers everything
-$( document ).ready(function() {
-    // The URLs are in 2 hidden elements in the HTML
-    retrieveMeters( document.getElementById("listUrl").value,document.getElementById("dataUrl1h").value);
-    });
-
 function zoomSelected(){
     let serialNum=0;
     console.log(serialNum=document.getElementById("zoomSelect").value);
@@ -108,3 +103,11 @@ function zoomSelected(){
     document.getElementById('progress').innerHTML="Récupération des données";
     retrieveData(serialNum,document.getElementById("dataUrl10mn").value,"zoomChart");
 }
+
+// This is the function that triggers everything
+$( document ).ready(function() {
+    // The URLs are in 2 hidden elements in the HTML
+    retrieveMeters( document.getElementById("listUrl").value,document.getElementById("dataUrl1h").value);
+    $("#zoomSelect").change(zoomSelected);
+    });
+
