@@ -1,6 +1,7 @@
 let nbMeterDone=0,nbMeters=0,nbMetersOK=0;
 let myLabels=[];
 let myData=[];
+let zc={zoomChart:null}; // holds the pointer to the zoom chart object, to destroy it when needed
 
 function prepareZoom(listCounters){
     console.log(listCounters);
@@ -21,12 +22,13 @@ function retrieveMeters(listLoc,dataLoc) {
         document.getElementById('progressEnd').innerHTML=">";
 
         for (i=0;i<result.list.length;i++){
+            let destCtx=document.getElementById("globalChart").getContext('2d');
             nbMeters=result.list.length;
-            setTimeout(retrieveData, i*1000,result.list[i],dataLoc,"globalChart");  // setTimeout programs the calls to retrieveData once/second, in order to comply with rbeesolar policy
+            setTimeout(retrieveData, i*1000,result.list[i],dataLoc,destCtx,null);  // setTimeout programs the calls to retrieveData once/second, in order to comply with rbeesolar policy
         }
     });
 }
-function retrieveData(serialNum,dataLoc,destCanvas) {
+function retrieveData(serialNum,dataLoc,destCtx,zc) {
     $.getJSON(dataLoc+serialNum, function(result){
         // Process the data that was just fetched
         console.log(serialNum);
@@ -43,15 +45,15 @@ function retrieveData(serialNum,dataLoc,destCanvas) {
             data: ithMeterData
             });
         nbMetersOK++;
-        dataRetrieved("+",destCanvas);
+        dataRetrieved("+",destCtx,zc);
     })
     .fail(function() {
         console.log( "error" + serialNum);
-        dataRetrieved("x",destCanvas);
+        dataRetrieved("x",destCtx,zc);
     });
 }
 
-function dataRetrieved(statusChar,destCanvas){
+function dataRetrieved(statusChar,destCtx,zc){
     nbMeterDone++;
     console.log(nbMeterDone);
     document.getElementById('progress').innerHTML+=statusChar;
@@ -60,14 +62,13 @@ function dataRetrieved(statusChar,destCanvas){
         document.getElementById('progress').innerHTML=nbMetersOK+" compteur(s) récupéré(s) !";
         document.getElementById('progressEnd').innerHTML="";
         $("#zoomSelect").prop('disabled', false);
-        doPlot(destCanvas);
+        zc.zoomChart=doPlot(destCtx);
     }
 
 }
 
-function doPlot(theChart){
-    let ctx = document.getElementById(theChart).getContext('2d');
-    let chart = new Chart(ctx, {
+function doPlot(destCtx){
+    let chart = new Chart(destCtx, {
         // The type of chart we want to create
         type: 'line',
 
@@ -91,17 +92,21 @@ function doPlot(theChart){
             elements: {line: {cubicInterpolationMode: 'monotone'}}
         }
     });
-
+    return chart;
 }
 
 function zoomSelected(){
     let serialNum=0;
-    console.log(serialNum=document.getElementById("zoomSelect").value);
+    let destCtx=document.getElementById("zoomChart").getContext('2d');
+    serialNum=document.getElementById("zoomSelect").value;
     nbMeters=1;nbMeterDone=0;nbMetersOK=0
     myLabels=[];
     myData=[];
+    if(zc.zoomChart){
+        zc.zoomChart.destroy();
+    }
     document.getElementById('progress').innerHTML="Récupération des données";
-    retrieveData(serialNum,document.getElementById("dataUrl10mn").value,"zoomChart");
+    retrieveData(serialNum,document.getElementById("dataUrl10mn").value,destCtx,zc);
 }
 
 // This is the function that triggers everything
