@@ -29,7 +29,8 @@ function retrieveMeters(listLoc,dataLoc) {
     });
 }
 function retrieveData(serialNum,dataLoc,destCtx,zc) {
-    $.getJSON(dataLoc+serialNum, function(result){
+    myUrl=dataLoc.replace("THESERIAL", serialNum);
+    $.getJSON(myUrl, function(result){
         // Process the data that was just fetched
         console.log(serialNum);
         let ithMeterData=[];

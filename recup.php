@@ -37,15 +37,18 @@ $args['login']=rbusername;
 $args['requestDate']=$reqdate ;
 $listUrl = url_rb_List.http_build_query($args);
 
+$args['serialNumber']="THESERIAL" ; //was c1serial -- counter serial number, now dynamically retrieved
+$deviceInfoUrl = url_rb_Info.http_build_query($args);
+
 //Build query to retrieve counter data
 $args['startDate']=date("Y-m-d\TH:i:s",time()-3600*24*7); // Last week
 $args['endDate']= $reqdate;
 $args['step']="h" ; // 1h steps
-$args['serialNumber']="" ; //was c1serial -- counter serial number, now dynamically retrieved
+
 
 $dataUrl1h = url_rb_ProdRad.http_build_query($args);
 
-$args['startDate']=date("Y-m-d\TH:i:s",time()-3600*36); // Yesterday+margin
+$args['startDate']=date("Y-m-d\TH:i:s",time()-3600*72); // Yesterday+margin
 $args['step']="tenmin" ; // t for ten minutes steps
 $dataUrl10mn = url_rb_Prod.http_build_query($args);
 
@@ -63,6 +66,7 @@ $dataUrl10mn = url_rb_Prod.http_build_query($args);
   <input type=hidden id=listUrl value = "<?php print( $listUrl ); ?>"/>
   <input type=hidden id=dataUrl1h value = "<?php print( $dataUrl1h ); ?>"/>
   <input type=hidden id=dataUrl10mn value = "<?php print( $dataUrl10mn ); ?>"/>
+  <input type=hidden id=deviceInfo value = "<?php print( $deviceInfoUrl ); ?>"/>
   <div style="width:100%; height:50%;">
   <canvas id="globalChart"></canvas>
   </div>
