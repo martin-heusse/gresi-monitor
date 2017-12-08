@@ -1,13 +1,3 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Demo</title>
-  <STYLE type="text/css">
-  DIV.sc {font-family: Sans-Serif;}
- </STYLE>
-</head>
-
 <?php
 require_once "constants.php";
 require_once "ids.php"; // Contains the identifier + Password to connect to RTone web API
@@ -33,35 +23,68 @@ $hash=preg_replace('/\//', '_', $hash);
 
 
 $meterList = json_decode(file_get_contents(build_qr_list($hash,$reqdate))); // returns an object with a single property called "list"
-echo build_qr_list($hash,$reqdate);
+pace();
+echo build_qr_list($hash,$reqdate)."\n";
 
 // fixme remove this !!
-$meterList->list = array_slice($meterList->list,count($meterList)-4);
+$meterList->list = array_slice($meterList->list,count($meterList)-5);
 
-foreach ($meterList->list as $serialNum){
-  get_dev_info($hash,$reqdate,$serialNum);
-  pace();
+foreach ($meterList->list as $serial){
+  $meterInfo=get_dev_info($hash,$reqdate,$serial);
+  var_dump($meterInfo);
+  if ($meterInfo->lastIndexDate){ // NULL if never retrieved
+    $lastIndexDate = strtotime($meterInfo->lastIndexDate) ; echo "\n";// convert to unix timestamp
+    $tsInDB = get_meter_lastts($serial,$db); echo "tsInDB : ". $tsInDB . " lastIndexDate:" . $lastIndexDate . "\n";
+    if($tsInDB == 0){
+      echo "First retrieval -- ts in db: $tsInDB\n " ;
+      $startts = strtotime($meterInfo->firstConnectionDate)-24*3600; // hoping the first data retrieval occured in first 24h
+      update_db_init_meter();
+    }
+    else{
+      $startts = $tsInDB+1 ; // Just after last timestamp in DB
+    }
+    $lastTime=strtotime($meterInfo->lastIndexDate);
+    $endts=$lastTime>$startts+7*24*3600?$startts+7*24*3600:$lastTime; // should not fetch more than 1 week at a time
+    echo "endts : $endts lastTime $lastTime\n";
+    while($startts<$lastTime){ // $lastTime
+      // loop to retrieve one week at a time
+      echo "retrieving from ".$startts." to ". $endts. "=" . ($endts-$startts)/24/3600 . "j\n";
+      retrieve_and_insert($hash,$reqdate, $serial,$startts,$endts,$db);
+      $startts = $endts+1; // let's not retrieve twice the same data
+      $endts=$lastTime>$startts+7*24*3600?$startts+7*24*3600:$lastTime;
+    }
+    // work done
+    set_meter_lastts($serial,$db,$lastTime);
+  }
+
 }
 
 function get_dev_info($hash,$reqdate,$sn=null){
   $meterInfo=json_decode(file_get_contents(build_qr_info($hash,$reqdate,$sn)));
-  pace();  
-  if ($meterInfo->lastIndexDate){ // NULL if never retrieved
-    echo strtotime($meterInfo->lastIndexDate) ; echo "\n";// convert to unix timestamp
-    $endts=time();
-    $startts=$endts-3600*12;
-    var_dump(file_get_contents(build_qr_10mn($hash,$reqdate,$sn,$startts,$endts)));
-    pace();
-  }
+  pace();
+  return $meterInfo;
 }
 
 function get_meter_lastts($serial,$_db){
-  $qr = "SELECT lastts FROM ".tp."meters WHERE serial='$serial'";
-  $select_messages = $_db->prepare($query);
-  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+  $qr = "SELECT serial,lastts FROM ".tp."meters WHERE serial='$serial'";
+  $select_messages = $_db->prepare($qr);
+  $select_messages->setFetchMode(PDO::FETCH_KEY_PAIR);
   $select_messages->execute();
   $res =$select_messages->fetchAll();
-  return $res[0];
+  if(!count($res)){
+    $qr = "insert into ".tp."meters values ($serial , '', '', 0, 0, 0)";
+    echo "$qr\n";
+    $insert_stmt = $_db->prepare($qr);
+    $insert_stmt->execute();
+    return 0;
+  }
+  var_dump($res[$serial]);
+  return $res[$serial];
+}
+function set_meter_lastts($serial,$_db,$ts){
+  $qr = "UPDATE ".tp."meters set lastts=? WHERE serial=$serial";
+  $update_messages = $_db->prepare($qr);
+  $update_messages->execute(array($ts));
 }
 
 
@@ -101,7 +124,22 @@ function build_qr_10mn($hash,$reqdate,$serial,$startts,$endts){
   return url_rb_Prod.http_build_query($args);
 }
 
+function update_db_init_meter(){
 
+}
 
+function retrieve_and_insert($hash,$reqdate, $serial,$startts,$endts,$db){
+  $r=json_decode(file_get_contents(build_qr_10mn($hash,$reqdate, $serial,$startts,$endts)));
+  pace();
+  $qr = "insert into ".tp."readings values ($serial , ?, ?)";//serial , ts , prod10 
+  $insert_stmt = $db->prepare($qr);
+
+  foreach($r->records as $x => $y ){
+    // $y has two components : measureDate and measure
+    if($y->measure>=0){
+      $insert_stmt->execute(array(strtotime($y->measureDate),$y->measure));
+    }
+  }
+}
 ?>
 
