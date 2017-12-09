@@ -38,7 +38,6 @@ foreach ($meterList->list as $serial){
     if($tsInDB == 0){
       echo "First retrieval -- ts in db: $tsInDB\n " ;
       $startts = strtotime($meterInfo->firstConnectionDate)-24*3600; // hoping the first data retrieval occured in first 24h
-      update_db_init_meter();
     }
     else{
       $startts = $tsInDB+1 ; // Just after last timestamp in DB
@@ -55,8 +54,10 @@ foreach ($meterList->list as $serial){
     }
     // work done
     set_meter_lastts($serial,$db,$lastTime);
+    if($tsInDB==0){
+      update_db_init_meter($serial,$meterInfo,$db);
+    }
   }
-
 }
 
 function get_dev_info($hash,$reqdate,$sn=null){
@@ -124,11 +125,25 @@ function build_qr_10mn($hash,$reqdate,$serial,$startts,$endts){
   return url_rb_Prod.http_build_query($args);
 }
 
-function update_db_init_meter(){
-
+function update_db_init_meter($serial,$meterInfo,$db){
+  $qr = "UPDATE ".tp."meters set peak_power=? WHERE serial=$serial";
+  $update_messages = $db->prepare($qr);
+  $update_messages->execute(array($meterInfo->peakPower));
+ 
+  $qr="select serial,min(ts) from monitorreadings where serial=$serial";
+  $select_messages = $db->prepare($qr);
+  $select_messages->setFetchMode(PDO::FETCH_KEY_PAIR);
+  $select_messages->execute();
+  $res =$select_messages->fetchAll();
+  if($res[$serial]>0){
+    $qr = "UPDATE ".tp."meters set fisrtts=? WHERE serial=$serial";
+    $update_messages = $db->prepare($qr);
+    $update_messages->execute(array($res[$serial]));
+  }
 }
 
 function retrieve_and_insert($hash,$reqdate, $serial,$startts,$endts,$db){
+  // First retrieve + insert for 10mn steps
   $r=json_decode(file_get_contents(build_qr_10mn($hash,$reqdate, $serial,$startts,$endts)));
   pace();
   $qr = "insert into ".tp."readings values ($serial , ?, ?)";//serial , ts , prod10 
