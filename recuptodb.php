@@ -27,7 +27,7 @@ pace();
 echo build_qr_list($hash,$reqdate)."\n";
 
 // fixme remove this !!
-$meterList->list = array_slice($meterList->list,count($meterList)-5);
+$meterList->list = array_slice($meterList->list,count($meterList)-2);
 
 foreach ($meterList->list as $serial){
   $meterInfo=get_dev_info($hash,$reqdate,$serial);
@@ -153,6 +153,19 @@ function retrieve_and_insert($hash,$reqdate, $serial,$startts,$endts,$db){
     // $y has two components : measureDate and measure
     if($y->measure>=0){
       $insert_stmt->execute(array(strtotime($y->measureDate),$y->measure));
+    }
+  }
+  
+  // Then for 1h
+  
+  $r=json_decode(file_get_contents(build_qr_1h($hash,$reqdate, $serial,$startts,$endts)));
+  pace();
+  $qr = "insert into ".tp."irrad values ($serial , ?, ?, ?)";//serial , ts , prod1h, irrad
+  $insert_stmt = $db->prepare($qr);
+  foreach($r->records as $x ){
+    // $x has 3 components : measureDate, measure and radiation
+    if($x->measure>=0){
+      $insert_stmt->execute(array(strtotime($x->measureDate),$x->measure,$x->radiation));
     }
   }
 }
