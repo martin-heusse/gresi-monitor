@@ -52,6 +52,9 @@ foreach ($meterList->list as $serial){
       $startts = $endts+1; // let's not retrieve twice the same data
       $endts=$lastTime>$startts+7*24*3600?$startts+7*24*3600:$lastTime;
     }
+    // Fix radiation table, which may be false around the last retrieval during the day
+    fix_irrad($hash,$reqdate, $serial,$theTime-38*3600,$theTime,$db);
+    
     // work done
     set_meter_lastts($serial,$db,$lastTime);
     if($tsInDB==0){
@@ -166,6 +169,19 @@ function retrieve_and_insert($hash,$reqdate, $serial,$startts,$endts,$db){
     // $x has 3 components : measureDate, measure and radiation
     if($x->measure>=0){
       $insert_stmt->execute(array(strtotime($x->measureDate),$x->measure,$x->radiation));
+    }
+  }
+}
+
+function fix_irrad($hash,$reqdate, $serial,$startts,$endts,$db){
+  $r=json_decode(file_get_contents(build_qr_1h($hash,$reqdate, $serial,$startts,$endts)));
+  pace();
+  $qr = "update ".tp."irrad set prod=?, irrad=? where serial=$serial and ts=? and irrad=0.0";//serial , ts , prod1h, irrad
+  $insert_stmt = $db->prepare($qr);
+  foreach($r->records as $x ){
+    // $x has 3 components : measureDate, measure and radiation
+    if($x->measure>=0){
+      $insert_stmt->execute(array($x->measure,$x->radiation,strtotime($x->measureDate)));
     }
   }
 }
