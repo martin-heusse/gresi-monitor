@@ -4,6 +4,24 @@ let myData=[];
 let zc={zoomChart:null}; // holds the pointer to the zoom chart object, to destroy it when needed
 let myMeters=[];
 
+function convertTS(ts){
+    // Create a new JavaScript Date object based on the timestamp
+    // multiplied by 1000 so that the argument is in milliseconds, not seconds.
+    let date = new Date(ts*1000);
+    let day = "" +date.getDate();
+    let month = ""+date.getMonth();
+    let year = ""+date.getFullYear();
+    // Hours part from the timestamp
+    let hours = date.getHours();
+    // Minutes part from the timestamp
+    let minutes = "0" + date.getMinutes();
+    // Seconds part from the timestamp
+    let seconds = "0" + date.getSeconds();
+
+    // Will display time in 10:30:23 format
+    return day +"/" + month + "/"+year+ " "+ hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+}
+
 function prepareZoom(listCounters){
     myOptions="<option></option>";
     listCounters.forEach(function(element) {
@@ -34,16 +52,15 @@ function retrieveMeters(listLoc,dataLoc) {
 function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     serialNum=serialInfo.serial;
 //http://localhost/~heusse/Monitor/getIrrad.php?serial=216670215&start=1512814200&end=1512823800
-    var ts = Math.round((new Date()).getTime() / 1000);
+    let ts = Math.round((new Date()).getTime() / 1000);
     myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-5*24*3600)+"&end="+ts;
     console.log(myUrl);
     $.getJSON(myUrl, function(result){
         // Process the data that was just fetched
-        console.log(result);
         let ithMeterData=[];
         myLabels=[];
         result.forEach(function(item) {
-            myLabels.push(item.ts); // overriding previous ones, but it's always the same thing
+            myLabels.push(convertTS(item.ts)); // overriding previous ones, but it's always the same thing
             ithMeterData.push(item.prod);
         });
 
