@@ -7,7 +7,7 @@ function prepareZoom(listCounters){
     myOptions="<option></option>";
     listCounters.forEach(function(element) {
         console.log(element.serial);
-        myOptions+="<option>"+element.serial+"</option>";
+        myOptions+="<option value="+element.serial+">"+element.name+"</option>";
         });
     document.getElementById('zoomSelect').innerHTML=myOptions;
 }
@@ -21,14 +21,16 @@ function retrieveMeters(listLoc,dataLoc) {
         document.getElementById('progress').innerHTML="Récupération des données";
         document.getElementById('progressEnd').innerHTML=">";
 
+        let destCtx=document.getElementById("globalChart").getContext('2d');
+
         for (i=0;i<result.length;i++){
-            let destCtx=document.getElementById("globalChart").getContext('2d');
             nbMeters=result.length;
-            setTimeout(retrieveData, i*20,result[i].serial,dataLoc,destCtx,null);  // setTimeout programs the calls to retrieveData once/second, in order to comply with rbeesolar policy
+            setTimeout(retrieveData, i*20,result[i],dataLoc,destCtx,null);  // setTimeout programs the calls to retrieveData once/second, in order to comply with rbeesolar policy
         }
     });
 }
-function retrieveData(serialNum,dataLoc,destCtx,zc) {
+function retrieveData(serialInfo,dataLoc,destCtx,zc) {
+    serialNum=serialInfo.serial;
 //http://localhost/~heusse/Monitor/getIrrad.php?serial=216670215&start=1512814200&end=1512823800
     var ts = Math.round((new Date()).getTime() / 1000);
     myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-5*24*3600)+"&end="+ts;
@@ -43,7 +45,7 @@ function retrieveData(serialNum,dataLoc,destCtx,zc) {
             ithMeterData.push(item.prod);
         });
 
-        myData.push({label: serialNum,
+        myData.push({label: result[0].serial, //using serialNum here gives funny results, since the variable can have a different value!!
             //  backgroundColor: 'none',
             borderColor: `hsl(${(50*nbMeterDone)%360}, 100%,50%)`,
             data: ithMeterData
@@ -103,6 +105,7 @@ function zoomSelected(){
     let serialNum=0;
     let destCtx=document.getElementById("zoomChart").getContext('2d');
     serialNum=document.getElementById("zoomSelect").value;
+    serialName=document.getElementById("zoomSelect").name;
     nbMeters=1;nbMeterDone=0;nbMetersOK=0
     myLabels=[];
     myData=[];
@@ -110,7 +113,7 @@ function zoomSelected(){
         zc.zoomChart.destroy();
     }
     document.getElementById('progress').innerHTML="Récupération des données";
-    retrieveData(serialNum,document.getElementById("dataUrl10mn").value,destCtx,zc);
+    retrieveData({serial:serialNum,name:serialName},document.getElementById("dataUrl10mn").value,destCtx,zc);
 }
 
 // This is the function that triggers everything

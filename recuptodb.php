@@ -1,13 +1,14 @@
 <?php
 require_once "constants.php";
-require_once "ids.php"; // Contains the identifier + Password to connect to RTone web API
+require_once "ids.php"; // Contains the identifier + Password to connect to RTone web API, + to connect to DB
 require_once "common.php"; 
 
 $db = connect_to_db();
 
 // Build API key from login, password, date
 date_default_timezone_set("UTC");
-$reqdate=date_to_str(time());
+$theTime=time();
+$reqdate=date_to_str($theTime);
 $string = rbusername.rbpass.$reqdate;
 
 $hash = sha1($string, true);
@@ -24,14 +25,15 @@ $hash=preg_replace('/\//', '_', $hash);
 
 $meterList = json_decode(file_get_contents(build_qr_list($hash,$reqdate))); // returns an object with a single property called "list"
 pace();
-echo build_qr_list($hash,$reqdate)."\n";
 
 // fixme remove this !!
-$meterList->list = array_slice($meterList->list,count($meterList)-2);
+$meterList->list = array_slice($meterList->list,count($meterList)-5);
 
 foreach ($meterList->list as $serial){
+  // First get all meters that belong to us
   $meterInfo=get_dev_info($hash,$reqdate,$serial);
   var_dump($meterInfo);
+  // Is it activated?
   if ($meterInfo->lastIndexDate){ // NULL if never retrieved
     $lastIndexDate = strtotime($meterInfo->lastIndexDate) ; echo "\n";// convert to unix timestamp
     $tsInDB = get_meter_lastts($serial,$db); echo "tsInDB : ". $tsInDB . " lastIndexDate:" . $lastIndexDate . "\n";
@@ -57,6 +59,7 @@ foreach ($meterList->list as $serial){
     
     // work done
     set_meter_lastts($serial,$db,$lastTime);
+    echo "$serial done \n\n";
     if($tsInDB==0){
       update_db_init_meter($serial,$meterInfo,$db);
     }
@@ -129,9 +132,9 @@ function build_qr_10mn($hash,$reqdate,$serial,$startts,$endts){
 }
 
 function update_db_init_meter($serial,$meterInfo,$db){
-  $qr = "UPDATE ".tp."meters set peak_power=? WHERE serial=$serial";
+  $qr = "UPDATE ".tp."meters set peak_power=?, name=? WHERE serial=$serial";
   $update_messages = $db->prepare($qr);
-  $update_messages->execute(array($meterInfo->peakPower));
+  $update_messages->execute(array($meterInfo->peakPower,$serial));
  
   $qr="select serial,min(ts) from monitorreadings where serial=$serial";
   $select_messages = $db->prepare($qr);

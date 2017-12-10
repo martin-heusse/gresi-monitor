@@ -12,7 +12,7 @@ function pageHeader($pageDesc){
 	<link rel="stylesheet" type="text/css" href="style.css"/>
 	</head>
 
-	<body onload="onLoadFunction()">
+	<body>
 	
 	<h1> '. $pageDesc .' </h1>';
 }
