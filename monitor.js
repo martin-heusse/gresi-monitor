@@ -2,6 +2,7 @@ let nbMeterDone=0,nbMeters=0,nbMetersOK=0;
 let myLabels=[];
 let myData=[];
 let zc={zoomChart:null}; // holds the pointer to the zoom chart object, to destroy it when needed
+let myMeters=[];
 
 function prepareZoom(listCounters){
     myOptions="<option></option>";
@@ -22,9 +23,10 @@ function retrieveMeters(listLoc,dataLoc) {
         document.getElementById('progressEnd').innerHTML=">";
 
         let destCtx=document.getElementById("globalChart").getContext('2d');
+        nbMeters=result.length;
 
         for (i=0;i<result.length;i++){
-            nbMeters=result.length;
+            myMeters[result[i].serial]=result[i].name;
             setTimeout(retrieveData, i*20,result[i],dataLoc,destCtx,null);  // setTimeout programs the calls to retrieveData once/second, in order to comply with rbeesolar policy
         }
     });
@@ -45,7 +47,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             ithMeterData.push(item.prod);
         });
 
-        myData.push({label: result[0].serial, //using serialNum here gives funny results, since the variable can have a different value!!
+        myData.push({label: ""+result[0].serial+" "+myMeters[result[0].serial], //using serialNum here gives funny results, since the variable can have a different value!!
             //  backgroundColor: 'none',
             borderColor: `hsl(${(50*nbMeterDone)%360}, 100%,50%)`,
             data: ithMeterData
