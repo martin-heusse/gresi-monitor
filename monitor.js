@@ -3,11 +3,13 @@ let myLabels=[];
 let myData=[];
 let zc={zoomChart:null}; // holds the pointer to the zoom chart object, to destroy it when needed
 let myMeters=[];
+let endDate=null;
 
 function convertTS(ts){
     // Create a new JavaScript Date object based on the timestamp
     // multiplied by 1000 so that the argument is in milliseconds, not seconds.
     let date = new Date(ts*1000);
+/*
     let day = "" +date.getDate();
     let month = ""+date.getMonth();
     let year = ""+date.getFullYear();
@@ -20,6 +22,8 @@ function convertTS(ts){
 
     // Will display time in 10:30:23 format
     return day +"/" + month + "/"+year+ " "+ hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+*/
+    return date.toLocaleString();
 }
 
 function prepareZoom(listCounters){
@@ -51,24 +55,37 @@ function retrieveMeters(listLoc,dataLoc) {
 }
 function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     serialNum=serialInfo.serial;
+    whToW=1; // This is for Wh to W conversion when step is 1h...
 //http://localhost/~heusse/Monitor/getIrrad.php?serial=216670215&start=1512814200&end=1512823800
     let ts = Math.round((new Date()).getTime() / 1000);
-    myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-5*24*3600)+"&end="+ts;
+    if (endDate.getTime()>0){
+        ts=Math.round(endDate.getTime()/1000);
+    }
+    if(zc){ //zc==null means main graph
+        nbDays=3;
+         whToW=6;
+    }
+    else{
+        nbDays=7;
+    }
+    myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
     console.log(myUrl);
     $.getJSON(myUrl, function(result){
-        // Process the data that was just fetched
-        let ithMeterData=[];
-        myLabels=[];
-        result.forEach(function(item) {
-            myLabels.push(convertTS(item.ts)); // overriding previous ones, but it's always the same thing
-            ithMeterData.push(item.prod);
-        });
+        if(result.length>0){
+            // Process the data that was just fetched
+            let ithMeterData=[];
+            myLabels=[];
+            result.forEach(function(item) {
+                myLabels.push(convertTS(item.ts)); // overriding previous ones, but it's always the same thing
+                ithMeterData.push(item.prod*whToW);
+                });
 
-        myData.push({label: ""+result[0].serial+" "+myMeters[result[0].serial], //using serialNum here gives funny results, since the variable can have a different value!!
-            //  backgroundColor: 'none',
-            borderColor: `hsl(${(50*nbMeterDone)%360}, 100%,50%)`,
-            data: ithMeterData
-            });
+            myData.push({label: ""+result[0].serial+" "+myMeters[result[0].serial], //using serialNum here gives funny results, since the variable can have a different value!!
+                //  backgroundColor: 'none',
+                borderColor: `hsl(${(50*nbMeterDone)%360}, 100%,50%)`,
+                data: ithMeterData
+                });
+        }
         nbMetersOK++;
         dataRetrieved("+",destCtx,zc);
     })
@@ -110,7 +127,7 @@ function doPlot(destCtx){
             yAxes: [{
                 scaleLabel: {
                 display: true,
-                labelString: 'Wh'
+                labelString: 'W'
                 }
                 }]
             },
@@ -137,8 +154,12 @@ function zoomSelected(){
 
 // This is the function that triggers everything
 $( document ).ready(function() {
+    endDate=new Date($("#enddate")[0].value);
+    console.log(endDate.getTime());
+
     // The URLs are in 2 hidden elements in the HTML
     retrieveMeters( document.getElementById("listUrl").value,document.getElementById("dataUrl1h").value);
     $("#zoomSelect").change(zoomSelected);
+    // let endDate=new Date($("#enddate").value);
     });
 

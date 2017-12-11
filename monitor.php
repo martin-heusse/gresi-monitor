@@ -15,16 +15,32 @@ date_default_timezone_set("UTC");
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
 <script src="./monitor.js"> </script>
 
+
+<?php
+if (isset($_POST['enddate'])){
+    $enddate=$_POST['enddate'];
+}
+else $enddate="";
+?>
+
+
+<div class="sc">
+<?php header_form(basename(__FILE__));?>
+  Afficher la semaine se terminant le:
+  <input type="date" id="enddate" name="enddate" value="<?php echo $enddate;?>"/>
+  <input type="submit"/>
+</form>
+</div>
 <div id="status" class="sc"><span id="progress"></span><span id="progressEnd"></span></div>
 <input type=hidden id=listUrl value = "<?php print( listUrl ); ?>"/>
 <input type=hidden id=dataUrl1h value = "<?php print( dataUrl1h ); ?>"/>
 <input type=hidden id=dataUrl10mn value = "<?php print( dataUrl10mn ); ?>"/>
-<div style="width:100%; height:50%;">
+<div style="width:60%; height:50%;">
   <canvas id="globalChart"></canvas>
 </div>
 <div>
   <select id="zoomSelect" disabled></select>
-  <div style="width:100%; height:50%;">
+  <div style="width:60%; height:50%;">
     <canvas id="zoomChart"></canvas>
   </div>
 </div>

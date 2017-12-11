@@ -9,12 +9,18 @@ function pageHeader($pageDesc){
 		<meta http-equiv="Content-Language" content="fr" />
 		<title>'
 	. $pageDesc .'</title>
-	<link rel="stylesheet" type="text/css" href="style.css"/>
+
+      <STYLE type="text/css">
+      DIV.sc {font-family: Sans-Serif;}
+      DIV.plot{
+                margin-left: auto;
+                margin-right: auto;}
+     </STYLE>
+
+
 	</head>
 
-	<body>
-	
-	<h1> '. $pageDesc .' </h1>';
+	<body>';
 }
 
 function pageFoot(){
