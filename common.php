@@ -12,8 +12,8 @@ function pageHeader($pageDesc){
 
       <STYLE type="text/css">
       DIV.sc {font-family: Sans-Serif;}
-      DIV.plot{
-                margin-left: auto;
+      DIV.ib {display: inline;}
+      DIV.plot{ margin-left: auto;
                 margin-right: auto;}
      </STYLE>
 

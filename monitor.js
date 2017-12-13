@@ -4,26 +4,27 @@ let myData=[];
 let zc={zoomChart:null}; // holds the pointer to the zoom chart object, to destroy it when needed
 let myMeters=[];
 let endDate=null;
+let nbProdDone=0;nbProd=0;
+let prodString="";
 
 function convertTS(ts){
     // Create a new JavaScript Date object based on the timestamp
     // multiplied by 1000 so that the argument is in milliseconds, not seconds.
     let date = new Date(ts*1000);
-/*
     let day = "" +date.getDate();
-    let month = ""+date.getMonth();
-    let year = ""+date.getFullYear();
+    let month = ""+(date.getMonth()+1);
+//     let year = ""+date.getFullYear();
     // Hours part from the timestamp
     let hours = date.getHours();
     // Minutes part from the timestamp
     let minutes = "0" + date.getMinutes();
     // Seconds part from the timestamp
-    let seconds = "0" + date.getSeconds();
+//     let seconds = "0" + date.getSeconds();
 
     // Will display time in 10:30:23 format
-    return day +"/" + month + "/"+year+ " "+ hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-*/
-    return date.toLocaleString();
+//     return day +"/" + month + "/"+year+ " "+ hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+    return day +"/" + month + " "+ hours + ':' + minutes.substr(-2) ;
+//     return date.toLocaleString();
 }
 
 function prepareZoom(listCounters){
@@ -40,6 +41,8 @@ function retrieveMeters(listLoc,dataLoc) {
     $.getJSON(listLoc, function(result){
         let i=0;
         prepareZoom(result);
+        displayMonthly(endDate,result);
+
 
         document.getElementById('progress').innerHTML="Récupération des données";
         document.getElementById('progressEnd').innerHTML=">";
@@ -53,22 +56,31 @@ function retrieveMeters(listLoc,dataLoc) {
         }
     });
 }
+
+function tsfromEndDate(endDate){
+    let ts = Math.round((new Date()).getTime() / 1000);
+    if (endDate.getTime()>0){
+        ts=Math.round(endDate.getTime()/1000)+24*3600;
+    }
+    return ts;
+}
+
 function retrieveData(serialInfo,dataLoc,destCtx,zc) {
+    console.log("zc: "+zc);
     serialNum=serialInfo.serial;
     whToW=1; // This is for Wh to W conversion when step is 1h...
 //http://localhost/~heusse/Monitor/getIrrad.php?serial=216670215&start=1512814200&end=1512823800
-    let ts = Math.round((new Date()).getTime() / 1000);
-    if (endDate.getTime()>0){
-        ts=Math.round(endDate.getTime()/1000);
-    }
+
+    let ts = tsfromEndDate(endDate);
+
     if(zc){ //zc==null means main graph
         nbDays=3;
-         whToW=6;
+        whToW=6;
     }
     else{
         nbDays=7;
     }
-    myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
+    let myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
     console.log(myUrl);
     $.getJSON(myUrl, function(result){
         if(result.length>0){
@@ -90,7 +102,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
         dataRetrieved("+",destCtx,zc);
     })
     .fail(function() {
-        console.log( "error" + serialNum);
+        console.log( "error retrieve");
         dataRetrieved("x",destCtx,zc);
     });
 }
@@ -152,14 +164,41 @@ function zoomSelected(){
     retrieveData({serial:serialNum,name:serialName},document.getElementById("dataUrl10mn").value,destCtx,zc);
 }
 
+function displayMonthly(endDate,counterList){
+    let ts = tsfromEndDate(endDate);
+    console.log("displayMontly"+ts);
+    let myDate=new Date(ts*1000);
+    prodString = "Production pour le mois "+ (myDate.getMonth()+1) + "/"+ myDate.getFullYear() +"<BR>";
+    prodString +=  '<table style="width:30%">';
+    nbProd=counterList.length;
+    for (i=0;i<nbProd;i++){
+        let myUrl=document.getElementById("dataUrlMonth").value+"?serial="+counterList[i].serial+"&end="+ts;
+        $.getJSON(myUrl, function(result){
+            for (x in result){ //only one iteration / x is the serial
+                console.log(x + " " + result[x]);
+                prodString+="<TR><TD>";
+                prodString+= " "+ myMeters[x] + " </TD><TD> "+ Math.round(result[x]/1000)  +" kWh </TD></TR>";
+            }
+            nbProdDone++;
+            if(nbProdDone==nbProd){
+                console.log("Done prod");
+                prodString+="</TABLE>";
+                $("#MonthlyProd")[0].innerHTML+=prodString;
+                console.log( prodString ) ;
+            }
+        })
+    }
+}
+
 // This is the function that triggers everything
 $( document ).ready(function() {
     endDate=new Date($("#enddate")[0].value);
-    console.log(endDate.getTime());
+//     console.log(endDate.getTime());
 
     // The URLs are in 2 hidden elements in the HTML
     retrieveMeters( document.getElementById("listUrl").value,document.getElementById("dataUrl1h").value);
     $("#zoomSelect").change(zoomSelected);
     // let endDate=new Date($("#enddate").value);
+        
     });
 

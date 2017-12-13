@@ -5,6 +5,7 @@ require_once "common.php";
 define('listUrl',baseUrl.'getMeters.php');
 define('dataUrl1h',baseUrl.'getIrrad.php');
 define('dataUrl10mn',baseUrl.'get10mn.php');
+define('dataUrlMonth',baseUrl.'getMonthlyProd.php');
 
 
 pageHeader("Monitoring");
@@ -23,26 +24,35 @@ if (isset($_POST['enddate'])){
 else $enddate="";
 ?>
 
+<input type=hidden id=listUrl value = "<?php print( listUrl ); ?>"/>
+<input type=hidden id=dataUrl1h value = "<?php print( dataUrl1h ); ?>"/>
+<input type=hidden id=dataUrl10mn value = "<?php print( dataUrl10mn ); ?>"/>
+<input type=hidden id=dataUrlMonth value = "<?php print( dataUrlMonth ); ?>"/>
 
-<div class="sc">
+
+<div style="width:80%;display:inline-block; border-style: solid;">
+    <div id="status" class="sc ib" style="display:none;"><span id="progress"></span><span id="progressEnd"></span></div>
+    <div>
+      <canvas id="globalChart" ></canvas>
+    </div>
+</div>
+
+<div class="sc" style="width:15%; display:inline-block; vertical-align:top; ">
 <?php header_form(basename(__FILE__));?>
   Afficher la semaine se terminant le:
   <input type="date" id="enddate" name="enddate" value="<?php echo $enddate;?>"/>
   <input type="submit"/>
 </form>
 </div>
-<div id="status" class="sc"><span id="progress"></span><span id="progressEnd"></span></div>
-<input type=hidden id=listUrl value = "<?php print( listUrl ); ?>"/>
-<input type=hidden id=dataUrl1h value = "<?php print( dataUrl1h ); ?>"/>
-<input type=hidden id=dataUrl10mn value = "<?php print( dataUrl10mn ); ?>"/>
-<div style="width:60%; height:50%;">
-  <canvas id="globalChart"></canvas>
-</div>
-<div>
+
+<div style="border-style: solid; width:80%; ">
   <select id="zoomSelect" disabled></select>
-  <div style="width:60%; height:50%;">
+  <div>
     <canvas id="zoomChart"></canvas>
   </div>
+</div>
+
+<div id="MonthlyProd" style="margin-top:1%;" class="sc" >
 </div>
 </body>
 </html>
