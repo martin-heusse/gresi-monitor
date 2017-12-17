@@ -69,7 +69,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     console.log("zc: "+zc);
     serialNum=serialInfo.serial;
     whToW=1; // This is for Wh to W conversion when step is 1h...
-//http://localhost/~heusse/Monitor/getIrrad.php?serial=216670215&start=1512814200&end=1512823800
+//http://localhost/~heusse/Monitor/get1h.php?serial=216670215&start=1512814200&end=1512823800
 
     let ts = tsfromEndDate(endDate);
 

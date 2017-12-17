@@ -7,7 +7,7 @@ $db = connect_to_db();
 
 
 // $_GET should contain serial, start, end 
-// ex: http://localhost/~heusse/Monitor/getIrrad.php?serial=216670215&start=1512814200&end=1512823800
+// ex: http://localhost/~heusse/Monitor/get1h.php?serial=216670215&start=1512814200&end=1512823800
 
 $reqArgs=array($_GET['serial'],$_GET['serial'],$_GET['start'],$_GET['end']);
 // $reqArgs=array(216670215,216670215,1512814200,1512823800);

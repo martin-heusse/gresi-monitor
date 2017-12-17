@@ -3,7 +3,7 @@ require_once "monitor-constants.php";
 require_once "common.php";
 
 define('listUrl',baseUrl.'getMeters.php');
-define('dataUrl1h',baseUrl.'getIrrad.php');
+define('dataUrl1h',baseUrl.'get1h.php');
 define('dataUrl10mn',baseUrl.'get10mn.php');
 define('dataUrlMonth',baseUrl.'getMonthlyProd.php');
 
