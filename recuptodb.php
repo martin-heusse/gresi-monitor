@@ -27,16 +27,16 @@ $meterList = json_decode(file_get_contents(build_qr_list($hash,$reqdate))); // r
 pace();
 
 // fixme remove this !!
-$meterList->list = array_slice($meterList->list,count($meterList)-5);
+// $meterList->list = array_slice($meterList->list,count($meterList)-5);
 
 foreach ($meterList->list as $serial){
   // First get all meters that belong to us
   $meterInfo=get_dev_info($hash,$reqdate,$serial);
-  var_dump($meterInfo);
+//   var_dump($meterInfo);
   // Is it activated?
   if ($meterInfo->lastIndexDate){ // NULL if never retrieved
     $lastIndexDate = strtotime($meterInfo->lastIndexDate) ; echo "\n";// convert to unix timestamp
-    $tsInDB = get_meter_lastts($serial,$db); echo "tsInDB : ". $tsInDB . " lastIndexDate:" . $lastIndexDate . "\n";
+    $tsInDB = get_meter_lastts($serial,$db); echo "tsInDB : ". $tsInDB . " lastIndexDate:" . $lastIndexDate . "  ". date_to_str($lastIndexDate) ."\n";
     if($tsInDB == 0){
       echo "First retrieval -- ts in db: $tsInDB\n " ;
       $startts = strtotime($meterInfo->firstConnectionDate)-24*3600; // hoping the first data retrieval occured in first 24h
@@ -49,7 +49,7 @@ foreach ($meterList->list as $serial){
     echo "endts : $endts lastTime $lastTime\n";
     while($startts<$lastTime){ // $lastTime
       // loop to retrieve one week at a time
-      echo "retrieving from ".$startts." to ". $endts. "=" . ($endts-$startts)/24/3600 . "j\n";
+      echo "retrieving from ".$startts." to ". $endts."(". date_to_str($endts) .")". "=" . ($endts-$startts)/24/3600 . "j\n";
       retrieve_and_insert($hash,$reqdate, $serial,$startts,$endts,$db);
       $startts = $endts+1; // let's not retrieve twice the same data
       $endts=$lastTime>$startts+7*24*3600?$startts+7*24*3600:$lastTime;

@@ -40,6 +40,7 @@ function retrieveMeters(listLoc,dataLoc) {
     // Get the list of serial numbers and call retrieveData() to eventually plot the data
     $.getJSON(listLoc, function(result){
         let i=0;
+        console.log(result);
         prepareZoom(result);
         displayMonthly(endDate,result);
 
