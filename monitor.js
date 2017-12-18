@@ -98,7 +98,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
 
             myData.push({label: ""+result[0].serial+" "+meterNames[result[0].serial], //using serialNum here gives funny results, since the variable can have a different value!!
                 //  backgroundColor: 'none',
-                borderColor: `hsl(${(50*nbMeterDone)%360}, 100%,50%)`,
+                borderColor: `hsl(${Math.round((nbMeterDone)/(nbMeters)*360)+45}, 100%,50%)`,
                 data: ithMeterData
                 });
         }
