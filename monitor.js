@@ -93,12 +93,17 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             myLabels=[];
             result.forEach(function(item) {
                 myLabels.push(convertTS(item.ts)); // overriding previous ones, but it's always the same thing
-                ithMeterData.push(item.prod*whToW/peakPower[result[0].serial]/1000);
+                ithMeterData.push(Math.round(item.prod*whToW/peakPower[result[0].serial])/1000);
                 });
+            console.log(ithMeterData);
 
-            myData.push({label: ""+result[0].serial+" "+meterNames[result[0].serial], //using serialNum here gives funny results, since the variable can have a different value!!
+            myData.push({label: meterNames[result[0].serial], // ""+result[0].serial+" "+ 
                 //  backgroundColor: 'none',
                 borderColor: `hsl(${Math.round((nbMeterDone)/(nbMeters)*360)+45}, 100%,50%)`,
+//                 pointBorderWidth: peakPower[result[0].serial]/12,
+//                 borderWidth:1,
+                pointBorderWidth: 1,
+                borderWidth:peakPower[result[0].serial]/12,
                 data: ithMeterData
                 });
         }
@@ -143,7 +148,7 @@ function doPlot(destCtx){
             yAxes: [{
                 scaleLabel: {
                 display: true,
-                labelString: 'W/Wc'
+                labelString: 'W / Wc'
                 }
                 }]
             },
