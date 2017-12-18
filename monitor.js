@@ -2,7 +2,8 @@ let nbMeterDone=0,nbMeters=0,nbMetersOK=0;
 let myLabels=[];
 let myData=[];
 let zc={zoomChart:null}; // holds the pointer to the zoom chart object, to destroy it when needed
-let myMeters=[];
+let meterNames=[]; // serial -> name
+let peakPower=[]; // serial -> peak_power
 let endDate=null;
 let nbProdDone=0;nbProd=0;
 let prodString="";
@@ -52,7 +53,9 @@ function retrieveMeters(listLoc,dataLoc) {
         nbMeters=result.length;
 
         for (i=0;i<result.length;i++){
-            myMeters[result[i].serial]=result[i].name;
+            console.log(result[i]);
+            meterNames[result[i].serial]=result[i].name;
+            peakPower[result[i].serial]=result[i].peak_power;
             setTimeout(retrieveData, i*20,result[i],dataLoc,destCtx,null);  // setTimeout programs the calls to retrieveData once/second, in order to comply with rbeesolar policy
         }
     });
@@ -90,10 +93,10 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             myLabels=[];
             result.forEach(function(item) {
                 myLabels.push(convertTS(item.ts)); // overriding previous ones, but it's always the same thing
-                ithMeterData.push(item.prod*whToW);
+                ithMeterData.push(item.prod*whToW/peakPower[result[0].serial]/1000);
                 });
 
-            myData.push({label: ""+result[0].serial+" "+myMeters[result[0].serial], //using serialNum here gives funny results, since the variable can have a different value!!
+            myData.push({label: ""+result[0].serial+" "+meterNames[result[0].serial], //using serialNum here gives funny results, since the variable can have a different value!!
                 //  backgroundColor: 'none',
                 borderColor: `hsl(${(50*nbMeterDone)%360}, 100%,50%)`,
                 data: ithMeterData
@@ -140,7 +143,7 @@ function doPlot(destCtx){
             yAxes: [{
                 scaleLabel: {
                 display: true,
-                labelString: 'W'
+                labelString: 'W/Wc'
                 }
                 }]
             },
@@ -178,7 +181,7 @@ function displayMonthly(endDate,counterList){
             for (x in result){ //only one iteration / x is the serial
                 console.log(x + " " + result[x]);
                 prodString+="<TR><TD>";
-                prodString+= " "+ myMeters[x] + " </TD><TD> "+ Math.round(result[x]/1000)  +" kWh </TD></TR>";
+                prodString+= " "+ meterNames[x] + " </TD><TD> "+ Math.round(result[x]/1000)  +" kWh </TD></TR>";
             }
             nbProdDone++;
             if(nbProdDone==nbProd){
