@@ -92,10 +92,10 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             let ithMeterData=[];
             myLabels=[];
             result.forEach(function(item) {
-                myLabels.push(convertTS(item.ts)); // overriding previous ones, but it's always the same thing
-                ithMeterData.push(Math.round(item.prod*whToW/peakPower[result[0].serial])/1000);
+                myLabels.push(convertTS(item.ts)); // overriding previous ones, but it's always the same thing, as ensured by the php call
+                wToWc=(!zc)?1/peakPower[result[0].serial]:1; // W / Wc in main  graph, kW in the other
+                ithMeterData.push(Math.round(item.prod*whToW*wToWc)/1000);
                 });
-            console.log(ithMeterData);
 
             myData.push({label: meterNames[result[0].serial], // ""+result[0].serial+" "+ 
                 //  backgroundColor: 'none',
@@ -125,12 +125,12 @@ function dataRetrieved(statusChar,destCtx,zc){
         document.getElementById('progress').innerHTML=nbMetersOK+" compteur(s) récupéré(s) !";
         document.getElementById('progressEnd').innerHTML="";
         $("#zoomSelect").prop('disabled', false);
-        zc.zoomChart=doPlot(destCtx);
+        zc.zoomChart=doPlot(destCtx,zc==null); // zc==null=> main plot
     }
 
 }
 
-function doPlot(destCtx){
+function doPlot(destCtx,isMainPlot){
     let chart = new Chart(destCtx, {
         // The type of chart we want to create
         type: 'line',
@@ -148,7 +148,7 @@ function doPlot(destCtx){
             yAxes: [{
                 scaleLabel: {
                 display: true,
-                labelString: 'W / Wc'
+                labelString: isMainPlot?'W / Wc':'kW'
                 }
                 }]
             },
