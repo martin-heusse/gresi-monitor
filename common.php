@@ -39,7 +39,7 @@ function connect_to_db(){
 }
 
 function pace(){
-  time_nanosleep(0, 500000000);
+  time_nanosleep(0, 700000000);
 }
 
 function date_to_str($time){ // Reciprocal of builtin strtotime()
