@@ -179,6 +179,10 @@ function zoomSelected(){
     if(serialNum>0){
         gcd.style.width="40%";
         mc.mainChart.resize();
+        setTimeout(function(){
+                    window.scrollTo(0,Math.round($("#zoomChart").offset().top));
+                    console.log("scrolled");}
+                ,500);
     }
     else{
         gcd.style.width="80%";
