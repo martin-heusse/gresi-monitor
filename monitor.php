@@ -29,7 +29,7 @@ else $enddate="";
 <input type=hidden id=dataUrlMonth value = "<?php print( dataUrlMonth ); ?>"/>
 
 
-<div style="width:80%;display:inline-block; border-style: solid;">
+<div id="globalChartDiv" style="width:80%;display:inline-block; border-style: solid;">
     <div id="status" class="sc ib" style="display:none;"><span id="progress"></span><span id="progressEnd"></span></div>
     <div>
       <canvas id="globalChart" ></canvas>

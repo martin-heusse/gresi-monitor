@@ -2,6 +2,7 @@ let nbMeterDone=0,nbMeters=0,nbMetersOK=0;
 let myLabels=[];
 let myData=[];
 let zc={zoomChart:null}; // holds the pointer to the zoom chart object, to destroy it when needed
+let mc={mainChart:null}; // holds the pointer to the main chart object
 let meterNames=[]; // serial -> name
 let peakPower=[]; // serial -> peak_power
 let endDate=null;
@@ -125,7 +126,10 @@ function dataRetrieved(statusChar,destCtx,zc){
         document.getElementById('progress').innerHTML=nbMetersOK+" compteur(s) récupéré(s) !";
         document.getElementById('progressEnd').innerHTML="";
         $("#zoomSelect").prop('disabled', false);
-        zc.zoomChart=doPlot(destCtx,zc==null); // zc==null=> main plot
+        if(zc==null)
+            mc.mainChart=doPlot(destCtx,0); // zc==null=> main plot
+        else
+            zc.zoomChart=doPlot(destCtx,1);
     }
 
 }
@@ -171,6 +175,15 @@ function zoomSelected(){
     }
     document.getElementById('progress').innerHTML="Récupération des données";
     retrieveData({serial:serialNum,name:serialName},document.getElementById("dataUrl10mn").value,destCtx,zc);
+    gcd=document.getElementById("globalChartDiv");
+    if(serialNum>0){
+        gcd.style.width="40%";
+        mc.mainChart.resize();
+    }
+    else{
+        gcd.style.width="80%";
+        mc.mainChart.resize();
+    }
 }
 
 function displayMonthly(endDate,counterList){
