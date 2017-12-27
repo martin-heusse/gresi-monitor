@@ -127,9 +127,9 @@ function dataRetrieved(statusChar,destCtx,zc){
         document.getElementById('progressEnd').innerHTML="";
         $("#zoomSelect").prop('disabled', false);
         if(zc==null)
-            mc.mainChart=doPlot(destCtx,0); // zc==null=> main plot
+            mc.mainChart=doPlot(destCtx,1); 
         else
-            zc.zoomChart=doPlot(destCtx,1);
+            zc.zoomChart=doPlot(destCtx,0);
     }
 
 }
