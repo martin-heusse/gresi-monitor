@@ -28,15 +28,7 @@ else $enddate="";
 <input type=hidden id=dataUrl10mn value = "<?php print( dataUrl10mn ); ?>"/>
 <input type=hidden id=dataUrlMonth value = "<?php print( dataUrlMonth ); ?>"/>
 
-
-<div id="globalChartDiv" style="width:80%;display:inline-block; border-style: solid;">
-    <div id="status" class="sc ib" style="display:none;"><span id="progress"></span><span id="progressEnd"></span></div>
-    <div>
-      <canvas id="globalChart" ></canvas>
-    </div>
-</div>
-
-<div class="sc" style="width:15%; display:inline-block; vertical-align:top; ">
+<div class="sc" style="width:80%; padding:6px;">
 <?php header_form(basename(__FILE__));?>
   Afficher la semaine se terminant le:
   <input type="date" id="enddate" name="enddate" value="<?php echo $enddate;?>"/>
@@ -44,11 +36,15 @@ else $enddate="";
 </form>
 </div>
 
-<div style="border-style: solid; width:80%; ">
-  <select id="zoomSelect" disabled></select>
-  <div>
-    <canvas id="zoomChart"></canvas>
-  </div>
+<div id="status" class="sc ib" style="display:none;"><span id="progress"></span><span id="progressEnd"></span></div>
+<div id="globalChartDiv" class="chartClass">
+  <canvas id="globalChart" ></canvas>
+</div>
+
+
+<select id="zoomSelect" disabled></select>
+<div class="chartClass">
+  <canvas id="zoomChart"></canvas>
 </div>
 
 <div id="MonthlyProd" style="margin-top:1%;" class="sc" >

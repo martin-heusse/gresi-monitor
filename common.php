@@ -15,6 +15,10 @@ function pageHeader($pageDesc){
       DIV.ib {display: inline;}
       DIV.plot{ margin-left: auto;
                 margin-right: auto;}
+      DIV.chartClass{border-style: solid;
+                width:95vw;
+                height:60vh;
+                margin-bottom:6px}
      </STYLE>
 
 

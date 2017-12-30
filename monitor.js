@@ -19,13 +19,13 @@ function convertTS(ts){
     // Hours part from the timestamp
     let hours = date.getHours();
     // Minutes part from the timestamp
-    let minutes = "0" + date.getMinutes();
+//     let minutes = "0" + date.getMinutes();
     // Seconds part from the timestamp
 //     let seconds = "0" + date.getSeconds();
 
     // Will display time in 10:30:23 format
 //     return day +"/" + month + "/"+year+ " "+ hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-    return day +"/" + month + " "+ hours + ':' + minutes.substr(-2) ;
+    return day +"/" + month + " "+ hours + "h" ;
 //     return date.toLocaleString();
 }
 
@@ -68,6 +68,13 @@ function tsfromEndDate(endDate){
         ts=Math.round(endDate.getTime()/1000)+24*3600;
     }
     return ts;
+}
+
+function updateMainChart(fontsize){
+    mc.mainChart.options.legend.labels.fontSize=fontsize;
+    mc.mainChart.options.scales.xAxes[0].ticks.fontSize=fontsize;
+    mc.mainChart.update();
+    mc.mainChart.resize();
 }
 
 function retrieveData(serialInfo,dataLoc,destCtx,zc) {
@@ -147,6 +154,7 @@ function doPlot(destCtx,isMainPlot){
 
         // Configuration options go here
         options: {
+            maintainAspectRatio: false,
             scales: {
             // Add label on Y axes
             yAxes: [{
@@ -175,18 +183,18 @@ function zoomSelected(){
     }
     document.getElementById('progress').innerHTML="Récupération des données";
     retrieveData({serial:serialNum,name:serialName},document.getElementById("dataUrl10mn").value,destCtx,zc);
+
+    // reduce size of main chart
     gcd=document.getElementById("globalChartDiv");
     if(serialNum>0){
-        gcd.style.width="40%";
-        mc.mainChart.resize();
-        setTimeout(function(){
-                    window.scrollTo(0,Math.round($("#zoomChart").offset().top));
-                    console.log("scrolled");}
-                ,500);
+        gcd.style.height="35vh";
+        updateMainChart(8);
+        window.scrollTo(0,Math.round($("#zoomChart").offset().top));
     }
     else{
-        gcd.style.width="80%";
-        mc.mainChart.resize();
+        gcd.style.height="";
+        updateMainChart(12);
+        window.scrollTo(0,0);
     }
 }
 
@@ -195,7 +203,7 @@ function displayMonthly(endDate,counterList){
     console.log("displayMontly"+ts);
     let myDate=new Date(ts*1000);
     prodString = "Production pour le mois "+ (myDate.getMonth()+1) + "/"+ myDate.getFullYear() +"<BR>";
-    prodString +=  '<table style="width:30%">';
+    prodString +=  '<table style="width:40%">';
     nbProd=counterList.length;
     for (i=0;i<nbProd;i++){
         let myUrl=document.getElementById("dataUrlMonth").value+"?serial="+counterList[i].serial+"&end="+ts;
