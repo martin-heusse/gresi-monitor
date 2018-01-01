@@ -203,7 +203,7 @@ function displayMonthly(endDate,counterList){
     console.log("displayMontly"+ts);
     let myDate=new Date(ts*1000);
     prodString = "Production pour le mois "+ (myDate.getMonth()+1) + "/"+ myDate.getFullYear() +"<BR>";
-    prodString +=  '<table style="width:40%">';
+    prodString +=  '<table class="dm">';
     nbProd=counterList.length;
     for (i=0;i<nbProd;i++){
         let myUrl=document.getElementById("dataUrlMonth").value+"?serial="+counterList[i].serial+"&end="+ts;

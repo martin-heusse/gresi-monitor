@@ -19,6 +19,7 @@ function pageHeader($pageDesc){
                 width:95vw;
                 height:60vh;
                 margin-bottom:6px}
+      TABLE.dm{width:40%;}
      </STYLE>
 
 
