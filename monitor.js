@@ -9,6 +9,9 @@ let endDate=null;
 let nbProdDone=0;nbProd=0;
 let prodString="";
 
+let zoomNbDays=3;
+let mainNbDays=7;
+
 function convertTS(ts){
     // Create a new JavaScript Date object based on the timestamp
     // multiplied by 1000 so that the argument is in milliseconds, not seconds.
@@ -86,11 +89,11 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     let ts = tsfromEndDate(endDate);
 
     if(zc){ //zc==null means main graph
-        nbDays=3;
+        nbDays=zoomNbDays;
         whToW=6;
     }
     else{
-        nbDays=7;
+        nbDays=mainNbDays;
     }
     let myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
     console.log(myUrl);
@@ -135,8 +138,10 @@ function dataRetrieved(statusChar,destCtx,zc){
         $("#zoomSelect").prop('disabled', false);
         if(zc==null)
             mc.mainChart=doPlot(destCtx,1); 
-        else
+        else{
             zc.zoomChart=doPlot(destCtx,0);
+            retrieveIrrad(zc);
+        }
     }
 
 }
@@ -196,6 +201,53 @@ function zoomSelected(){
         updateMainChart(12);
         window.scrollTo(0,0);
     }
+}
+
+function findTSMatching(element){
+    //"this" is date label from the zoom chart
+    return 0==this.localeCompare(convertTS(element.ts-1800));
+}
+
+function retrieveIrrad(zc){
+    // so what meter are we talking about?
+    serialNum=document.getElementById("zoomSelect").value;
+    // where is the data?
+    irradLoc=document.getElementById("dataUrl1h").value;
+    //when?
+    let ts = tsfromEndDate(endDate);
+    let nbDays=zoomNbDays;
+    let myUrl=irradLoc+"?serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
+    $.getJSON(myUrl, function(result){
+            chartData=zc.zoomChart.data;
+            //console.log(chartData); //chartData.labels chartData.datasets[]
+//             console.log(result); //chartData.labels chartData.datasets[]
+            irradData=[]
+
+            //"result" is in UTC time zone, irrad is in eastern europe time zone !!
+            const irradArray = result.map(function callback(currentValue){
+                                    let ed = new Date(currentValue.ts*1000);
+                                    tzOffset=ed.getTimezoneOffset();
+                                    ed=ed.valueOf()+tzOffset*60*1000;
+                                    let edUtc=new Date(ed);
+                                    currentValue.ts=edUtc/1000;
+                                    return currentValue;
+                                    });
+            for (var i = 0, len = chartData.labels.length; i < len; i++) {
+                let irradIndex=irradArray.findIndex(findTSMatching,chartData.labels[i]);
+                if(irradIndex>0){
+                    irradData.push(irradArray[irradIndex].irrad * peakPower[serialNum]/1000 );
+                }
+                else{
+                    irradData.push(null);
+                }
+            }
+            chartData.datasets.push({label:"Satellite",
+                                     borderColor: "red",
+                                     pointBorderWidth: 0,
+                                     borderWidth:1,
+                                     data:irradData});
+            zc.zoomChart.update();
+        });
 }
 
 function displayMonthly(endDate,counterList){
