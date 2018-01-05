@@ -9,7 +9,7 @@ define('dataUrlMonth',baseUrl.'getMonthlyProd.php');
 
 
 pageHeader("Monitoring");
-date_default_timezone_set("UTC");
+date_default_timezone_set("Europe/Paris");
 ?>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
@@ -17,10 +17,31 @@ date_default_timezone_set("UTC");
 
 
 <?php
+
+function shiftday(&$ed,$shiftval){
+    if(strlen($ed)>0){
+        $edstr=strtotime($ed)+3600*24*$shiftval;
+        $ed=date("Y-m-d",$edstr);
+    }
+    else{
+        $ed=date("Y-m-d",time()+3600*24*$shiftval);
+    }
+}
+
 if (isset($_POST['enddate'])){
     $enddate=$_POST['enddate'];
 }
 else $enddate="";
+
+if (isset($_POST['prevday']))
+    shiftday($enddate,-1);
+if (isset($_POST['nextday']))
+    shiftday($enddate,+1);
+if (isset($_POST['prevweek']))
+    shiftday($enddate,-7);
+if (isset($_POST['nextweek']))
+    shiftday($enddate,+7);
+
 ?>
 
 <input type=hidden id=listUrl value = "<?php print( listUrl ); ?>"/>
@@ -33,6 +54,10 @@ else $enddate="";
   Afficher la semaine se terminant le:
   <input type="date" id="enddate" name="enddate" value="<?php echo $enddate;?>"/>
   <input type="submit"/>
+  <input type="submit" name="prevweek" value="<<"/>
+  <input type="submit" name="prevday" value="<"/>
+  <input type="submit" name="nextday" value=">"/>
+  <input type="submit" name="nextweek" value=">>"/>
 </form>
 </div>
 
