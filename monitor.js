@@ -194,7 +194,7 @@ function zoomSelected(){
     if(serialNum>0){
         gcd.style.height="35vh";
         updateMainChart(8);
-        window.scrollTo(0,Math.round($("#zoomChart").offset().top));
+        window.scrollTo(0,Math.round($("#zoomSelect").offset().top));
     }
     else{
         gcd.style.height="";
@@ -209,6 +209,8 @@ function findTSMatching(element){
 }
 
 function retrieveIrrad(zc){
+    if(! $("#irradBox").prop( "checked" ))
+      return;
     // so what meter are we talking about?
     serialNum=document.getElementById("zoomSelect").value;
     // where is the data?
@@ -284,6 +286,7 @@ $( document ).ready(function() {
     // The URLs are in 2 hidden elements in the HTML
     retrieveMeters( document.getElementById("listUrl").value,document.getElementById("dataUrl1h").value);
     $("#zoomSelect").change(zoomSelected);
+    $("#irradBox").change(zoomSelected);
     // let endDate=new Date($("#enddate").value);
         
     });

@@ -42,7 +42,7 @@ else $enddate="";
 </div>
 
 
-<select id="zoomSelect" disabled></select>
+<select id="zoomSelect" disabled></select>  <input type="checkbox" id="irradBox"><label for="irrad"> Satellite</label>
 <div class="chartClass">
   <canvas id="zoomChart"></canvas>
 </div>
