@@ -67,7 +67,7 @@ if (isset($_POST['nextweek']))
 </div>
 
 
-<select id="zoomSelect" disabled></select>  <input type="checkbox" id="irradBox"><label for="irrad"> Satellite</label>
+<select id="zoomSelect" disabled></select>  <input type="checkbox" id="irradBox"><label for="irradBox"> Satellite</label>
 <div class="chartClass">
   <canvas id="zoomChart"></canvas>
 </div>
