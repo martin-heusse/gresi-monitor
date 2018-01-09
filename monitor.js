@@ -80,6 +80,19 @@ function updateMainChart(fontsize){
     mc.mainChart.resize();
 }
 
+function adjustTime(measureArray){
+  //"result" is in UTC time zone, irrad is in eastern europe time zone !!
+  let adjustedArray = measureArray.map(function callback(currentValue){
+                          let ed = new Date(currentValue.ts*1000);
+                          tzOffset=ed.getTimezoneOffset();
+                          ed=ed.valueOf()-tzOffset*60*1000;
+                          let edUtc=new Date(ed);
+                          currentValue.ts=edUtc/1000;
+                          return currentValue;
+                          });
+  return adjustedArray;
+}
+
 function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     console.log("zc: "+zc);
     serialNum=serialInfo.serial;
@@ -102,13 +115,15 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             // Process the data that was just fetched
             let ithMeterData=[];
             myLabels=[];
+            if(zc)
+              result=adjustTime(result);
             result.forEach(function(item) {
                 myLabels.push(convertTS(item.ts)); // overriding previous ones, but it's always the same thing, as ensured by the php call
                 wToWc=(!zc)?1/peakPower[result[0].serial]:1; // W / Wc in main  graph, kW in the other
                 ithMeterData.push(Math.round(item.prod*whToW*wToWc)/1000);
                 });
 
-            myData.push({label: meterNames[result[0].serial], // ""+result[0].serial+" "+ 
+            myData.push({label: meterNames[result[0].serial], // ""+resultAdj[0].serial+" "+ 
                 //  backgroundColor: 'none',
                 borderColor: `hsl(${Math.round((nbMeterDone)/(nbMeters)*360)+45}, 100%,50%)`,
 //                 pointBorderWidth: peakPower[result[0].serial]/12,
@@ -225,19 +240,10 @@ function retrieveIrrad(zc){
 //             console.log(result); //chartData.labels chartData.datasets[]
             irradData=[]
 
-            //"result" is in UTC time zone, irrad is in eastern europe time zone !!
-            const irradArray = result.map(function callback(currentValue){
-                                    let ed = new Date(currentValue.ts*1000);
-                                    tzOffset=ed.getTimezoneOffset();
-                                    ed=ed.valueOf()+tzOffset*60*1000;
-                                    let edUtc=new Date(ed);
-                                    currentValue.ts=edUtc/1000;
-                                    return currentValue;
-                                    });
             for (var i = 0, len = chartData.labels.length; i < len; i++) {
-                let irradIndex=irradArray.findIndex(findTSMatching,chartData.labels[i]);
+                let irradIndex=result.findIndex(findTSMatching,chartData.labels[i]);
                 if(irradIndex>0){
-                    irradData.push(irradArray[irradIndex].irrad * peakPower[serialNum]/1000 );
+                    irradData.push(result[irradIndex].irrad * peakPower[serialNum]/1000 );
                 }
                 else{
                     irradData.push(null);
