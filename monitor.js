@@ -11,6 +11,7 @@ let prodString="";
 
 let zoomNbDays=3;
 let mainNbDays=7;
+let mainNbDays10mn=1.25;
 
 function convertTS(ts){
     // Create a new JavaScript Date object based on the timestamp
@@ -106,7 +107,10 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
         whToW=6;
     }
     else{
-        nbDays=mainNbDays;
+        if($("#radio1h").prop( "checked" ))
+          nbDays=mainNbDays;
+        else
+          nbDays=mainNbDays10mn;
     }
     let myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
     console.log(myUrl);
@@ -115,7 +119,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             // Process the data that was just fetched
             let ithMeterData=[];
             myLabels=[];
-            if(zc)
+            if(zc || !$("#radio1h").prop( "checked" ))
               result=adjustTime(result);
             result.forEach(function(item) {
                 myLabels.push(convertTS(item.ts)); // overriding previous ones, but it's always the same thing, as ensured by the php call
@@ -290,7 +294,8 @@ $( document ).ready(function() {
 //     console.log(endDate.getTime());
 
     // The URLs are in 2 hidden elements in the HTML
-    retrieveMeters( document.getElementById("listUrl").value,document.getElementById("dataUrl1h").value);
+    let dataLoc=($("#radio1h").prop( "checked" ))?document.getElementById("dataUrl1h").value:document.getElementById("dataUrl10mn").value;
+    retrieveMeters( document.getElementById("listUrl").value,dataLoc);
     $("#zoomSelect").change(zoomSelected);
     $("#irradBox").change(zoomSelected);
     // let endDate=new Date($("#enddate").value);

@@ -41,7 +41,11 @@ if (isset($_POST['prevweek']))
     shiftday($enddate,-7);
 if (isset($_POST['nextweek']))
     shiftday($enddate,+7);
-
+$main1h=true;
+if (isset($_POST['dataspan'])){
+    if(0==strcmp($_POST['dataspan'],"10mn"))
+        $main1h=false;
+}
 ?>
 
 <input type=hidden id=listUrl value = "<?php print( listUrl ); ?>"/>
@@ -52,12 +56,14 @@ if (isset($_POST['nextweek']))
 <div class="sc" style="width:80%; padding:6px;">
 <?php header_form(basename(__FILE__));?>
   Afficher la semaine se terminant le:
-  <input type="date" id="enddate" name="enddate" value="<?php echo $enddate;?>"/>
+  <input type="date" onChange='this.form.submit();'  id="enddate" name="enddate" value="<?php echo $enddate;?>"/>
   <input type="submit"/>
   <input type="submit" name="prevweek" value="<<"/>
   <input type="submit" name="prevday" value="<"/>
   <input type="submit" name="nextday" value=">"/>
   <input type="submit" name="nextweek" value=">>"/>
+  <input id="radio1h" type="radio" onChange='this.form.submit();' name="dataspan" value="1h" <?php echo $main1h?"checked='checked'":"";?>/><label for="radio1h"> 1h</label>
+  <input id="radio10mn" type="radio"  onChange='this.form.submit();' name="dataspan" value="10mn" <?php echo (!$main1h)?"checked='checked'":"";?>/><label for="radio10mn"> 10mn</label>
 </form>
 </div>
 
