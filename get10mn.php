@@ -9,10 +9,21 @@ $db = connect_to_db();
 // $_GET should contain serial, start, end 
 // ex: http://localhost/~heusse/Monitor/get10mn.php?serial=216670215&start=1512814200&end=1512823800
 
-$reqArgs=array($_GET['serial'],$_GET['serial'],$_GET['start'],$_GET['end']);
+$reqArgs=array($_GET['serial'],$_GET['start'],$_GET['end'],$_GET['serial'],$_GET['start'],$_GET['end'],$_GET['serial']);
 
 // Make sure that there is a data (and maybe 0) for any existing ts in the DB within the time span
-$qr="select ? as serial, mru.ts, max(mru.prod) as prod from (select ts,0 as prod from ".tp."readings group by ts union select ts,prod from ".tp."readings where serial=? ) as mru where  (ts between ? and ?) group by ts order by ts";
+
+$qr="SELECT serial, ts, prod
+FROM ".tp."readings
+WHERE serial=?
+AND ts BETWEEN ? and ?
+UNION
+SELECT ? as serial, ts, 0
+FROM ".tp."readings
+WHERE ts BETWEEN ? AND ?
+AND (ts) NOT IN ( SELECT ts FROM ".tp."readings WHERE serial=?)
+ORDER BY ts";
+
 $select_messages = $db->prepare($qr);
 $select_messages->setFetchMode(PDO::FETCH_ASSOC);
 $select_messages->execute($reqArgs);
