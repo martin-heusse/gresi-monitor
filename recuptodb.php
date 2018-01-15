@@ -5,25 +5,24 @@ require_once "common.php";
 
 $db = connect_to_db();
 
+
+function compute_hash($reqdate){
 // Build API key from login, password, date
 date_default_timezone_set("UTC");
-$theTime=time();
-$reqdate=date_to_str($theTime);
-$string = rbusername.rbpass.$reqdate;
+  $string = rbusername.rbpass.$reqdate;
 
-$hash = sha1($string, true);
-$hash = base64_encode($hash);
-$hash=preg_replace('/\n/', '', $hash);
-$hash=preg_replace('/=/', '', $hash);
-$hash=preg_replace('/\+/', '-', $hash);
-$hash=preg_replace('/\//', '_', $hash);
-
-// echo $string . "  ". $hash."\n" ;
-
-//$reqdate=urlencode($reqdate);
+  $hash = sha1($string, true);
+  $hash = base64_encode($hash);
+  $hash=preg_replace('/\n/', '', $hash);
+  $hash=preg_replace('/=/', '', $hash);
+  $hash=preg_replace('/\+/', '-', $hash);
+  $hash=preg_replace('/\//', '_', $hash);
+  return $hash;
+}
 
 
-$meterList = json_decode(file_get_contents(build_qr_list($hash,$reqdate))); // returns an object with a single property called "list"
+
+$meterList = json_decode(file_get_contents(build_qr_list())); // returns an object with a single property called "list"
 pace();
 
 // fixme remove this !!
@@ -31,7 +30,7 @@ pace();
 
 foreach ($meterList->list as $serial){
   // First get all meters that belong to us
-  $meterInfo=get_dev_info($hash,$reqdate,$serial);
+  $meterInfo=get_dev_info($serial);
 //   var_dump($meterInfo);
   // Is it activated?
   if ($meterInfo->lastIndexDate){ // NULL if never retrieved
@@ -50,12 +49,13 @@ foreach ($meterList->list as $serial){
     while($startts<$lastTime){ // $lastTime
       // loop to retrieve one week at a time
       echo "retrieving from ".$startts." to ". $endts."(". date_to_str($endts) .")". "=" . ($endts-$startts)/24/3600 . "j\n";
-      retrieve_and_insert($hash,$reqdate, $serial,$startts,$endts,$db);
+      retrieve_and_insert($serial,$startts,$endts,$db);
       $startts = $endts+1; // let's not retrieve twice the same data
       $endts=$lastTime>$startts+7*24*3600?$startts+7*24*3600:$lastTime;
     }
     // Fix radiation table, which may be false around the last retrieval during the day
-    fix_irrad($hash,$reqdate, $serial,$theTime-38*3600,$theTime,$db);
+    $theTime=time();
+    fix_irrad($serial,$theTime-38*3600,$theTime,$db);
     
     // work done
     set_meter_lastts($serial,$db,$lastTime);
@@ -66,8 +66,8 @@ foreach ($meterList->list as $serial){
   }
 }
 
-function get_dev_info($hash,$reqdate,$sn=null){
-  $meterInfo=json_decode(file_get_contents(build_qr_info($hash,$reqdate,$sn)));
+function get_dev_info($sn=null){
+  $meterInfo=json_decode(file_get_contents(build_qr_info($sn)));
   pace();
   return $meterInfo;
 }
@@ -95,26 +95,29 @@ function set_meter_lastts($serial,$_db,$ts){
 }
 
 
-function base_args($hash,$reqdate){
-  $args['mps']=$hash;
+function base_args(){
+  $theTime=time();
+  $reqdate=date_to_str($theTime);
+  $args['mps']=compute_hash($reqdate);
   $args['login']=rbusername;
-  $args['requestDate']=$reqdate ;
+  $args['requestDate']= $reqdate;
+  print_r( $args);
   return $args;
 }
 
-function build_qr_list($hash,$reqdate){
+function build_qr_list(){
   //Build query to retrieve counter serial list
-  return url_rb_List.http_build_query(base_args($hash,$reqdate));
+  return url_rb_List.http_build_query(base_args());
 }
 
-function build_qr_info($hash,$reqdate,$serial){
-  $args=base_args($hash,$reqdate);
+function build_qr_info($serial){
+  $args=base_args();
   $args['serialNumber']=$serial; 
   return url_rb_Info.http_build_query($args);
 }
 
-function build_qr_1h($hash,$reqdate,$serial,$startts,$endts){
-  $args=base_args($hash,$reqdate);
+function build_qr_1h($serial,$startts,$endts){
+  $args=base_args();
   $args['serialNumber']=$serial; 
   $args['startDate']=date_to_str($startts);
   $args['endDate']= date_to_str($endts);
@@ -122,8 +125,8 @@ function build_qr_1h($hash,$reqdate,$serial,$startts,$endts){
   return url_rb_ProdRad.http_build_query($args);
 }
 
-function build_qr_10mn($hash,$reqdate,$serial,$startts,$endts){
-  $args=base_args($hash,$reqdate);
+function build_qr_10mn($serial,$startts,$endts){
+  $args=base_args();
   $args['serialNumber']=$serial; 
   $args['startDate']=date_to_str($startts);
   $args['endDate']= date_to_str($endts);
@@ -148,9 +151,10 @@ function update_db_init_meter($serial,$meterInfo,$db){
   }
 }
 
-function retrieve_and_insert($hash,$reqdate, $serial,$startts,$endts,$db){
+function retrieve_and_insert( $serial,$startts,$endts,$db){
   // First retrieve + insert for 10mn steps
-  $r=json_decode(file_get_contents(build_qr_10mn($hash,$reqdate, $serial,$startts,$endts)));
+  $r=json_decode(file_get_contents(build_qr_10mn($serial,$startts,$endts)));
+  echo build_qr_10mn($serial,$startts,$endts);
   pace();
   $qr = "insert into ".tp."readings values ($serial , ?, ?)";//serial , ts , prod10 
   $insert_stmt = $db->prepare($qr);
@@ -164,7 +168,8 @@ function retrieve_and_insert($hash,$reqdate, $serial,$startts,$endts,$db){
   
   // Then for 1h
   
-  $r=json_decode(file_get_contents(build_qr_1h($hash,$reqdate, $serial,$startts,$endts)));
+  $r=json_decode(file_get_contents(build_qr_1h($serial,$startts,$endts)));
+  echo build_qr_1h($serial,$startts,$endts);
   pace();
   $qr = "insert into ".tp."irrad values ($serial , ?, ?, ?)";//serial , ts , prod1h, irrad
   $insert_stmt = $db->prepare($qr);
@@ -176,8 +181,8 @@ function retrieve_and_insert($hash,$reqdate, $serial,$startts,$endts,$db){
   }
 }
 
-function fix_irrad($hash,$reqdate, $serial,$startts,$endts,$db){
-  $r=json_decode(file_get_contents(build_qr_1h($hash,$reqdate, $serial,$startts,$endts)));
+function fix_irrad($serial,$startts,$endts,$db){
+  $r=json_decode(file_get_contents(build_qr_1h($serial,$startts,$endts)));
   pace();
   $qr = "update ".tp."irrad set prod=?, irrad=? where serial=$serial and ts=? and irrad=0.0";//serial , ts , prod1h, irrad
   $insert_stmt = $db->prepare($qr);
