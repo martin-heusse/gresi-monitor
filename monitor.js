@@ -9,7 +9,7 @@ let endDate=null;
 let nbProdDone=0;nbProd=0;
 let prodString="";
 
-let zoomNbDays=3;
+let zoomNbDays=0.8;
 let mainNbDays=7;
 let mainNbDays10mn=1.75;
 
@@ -289,7 +289,7 @@ function retrieveRef(zc){
 //             console.log(result); //chartData.labels chartData.datasets[]
             refData=[];
             result=adjustTime(result);
-            for (var i = 0, len = chartData.labels.length; i < len; i++) {
+            for (var i = 0, len = chartData.labels.length, lenr = result.length; i < len && i<lenr; i++) {
                 refData.push(result[i].prod*whToW/1000);
             }
             chartData.datasets.push({label:"ref",
