@@ -74,6 +74,7 @@ if (isset($_POST['dataspan'])){
 
 
 <select id="zoomSelect" disabled></select>  <input type="checkbox" id="irradBox"><label for="irradBox"> Satellite</label>
+<span style="margin-left:10%;">Période de référence :</span><input style="margin-left:1%;" type="date" id="zoomenddate" name="zoomenddate"/>
 <div class="chartClass">
   <canvas id="zoomChart"></canvas>
 </div>

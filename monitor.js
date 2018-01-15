@@ -60,7 +60,6 @@ function retrieveMeters(listLoc,dataLoc) {
         nbMeters=result.length;
 
         for (i=0;i<result.length;i++){
-            console.log(result[i]);
             meterNames[result[i].serial]=result[i].name;
             peakPower[result[i].serial]=result[i].peak_power;
             setTimeout(retrieveData, i*20,result[i],dataLoc,destCtx,null);  // setTimeout programs the calls to retrieveData once/second, in order to comply with rbeesolar policy
@@ -113,8 +112,10 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     else{
         if($("#radio1h").prop( "checked" ))
           nbDays=mainNbDays;
-        else
+        else{
           nbDays=mainNbDays10mn;
+          whToW=6;
+        }
     }
     let myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
     console.log(myUrl);
@@ -164,6 +165,7 @@ function dataRetrieved(statusChar,destCtx,zc){
         else{
             zc.zoomChart=doPlot(destCtx,0);
             retrieveIrrad(zc);
+            retrieveRef(zc);
         }
     }
 
@@ -233,7 +235,7 @@ function findTSMatching(element){
 
 function retrieveIrrad(zc){
     if(! $("#irradBox").prop( "checked" ))
-      return;
+        return;
     // so what meter are we talking about?
     serialNum=document.getElementById("zoomSelect").value;
     // where is the data?
@@ -262,6 +264,39 @@ function retrieveIrrad(zc){
                                      pointBorderWidth: 0,
                                      borderWidth:1,
                                      data:irradData});
+            zc.zoomChart.update();
+        });
+}
+
+function retrieveRef(zc){
+    // so what meter are we talking about?
+    serialNum=document.getElementById("zoomSelect").value;
+    if($("#zoomenddate")[0].value.length==0 || serialNum.length==0)
+      return;
+    // where is the data?
+    dataLoc=document.getElementById("dataUrl10mn").value;
+    //when?
+    let ts = tsfromEndDate(new Date(Date.parse($("#zoomenddate")[0].value)));
+    let nbDays=zoomNbDays;
+    whToW=6;
+
+    let myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
+    $.getJSON(myUrl, function(result){
+            chartData=zc.zoomChart.data;
+            console.log(result);
+            console.log("chartdatalenght="+chartData.labels.length)
+            //console.log(chartData); //chartData.labels chartData.datasets[]
+//             console.log(result); //chartData.labels chartData.datasets[]
+            refData=[];
+            result=adjustTime(result);
+            for (var i = 0, len = chartData.labels.length; i < len; i++) {
+                refData.push(result[i].prod*whToW/1000);
+            }
+            chartData.datasets.push({label:"ref",
+                                     borderColor: "blue",
+                                     pointBorderWidth: 0,
+                                     borderWidth:0.5,
+                                     data:refData});
             zc.zoomChart.update();
         });
 }
@@ -302,6 +337,7 @@ $( document ).ready(function() {
     retrieveMeters( document.getElementById("listUrl").value,dataLoc);
     $("#zoomSelect").change(zoomSelected);
     $("#irradBox").change(zoomSelected);
+    $("#zoomenddate").change(zoomSelected);
     // let endDate=new Date($("#enddate").value);
         
     });
