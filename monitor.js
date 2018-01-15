@@ -11,12 +11,14 @@ let prodString="";
 
 let zoomNbDays=3;
 let mainNbDays=7;
-let mainNbDays10mn=1.25;
+let mainNbDays10mn=1.75;
 
 function convertTS(ts){
     // Create a new JavaScript Date object based on the timestamp
     // multiplied by 1000 so that the argument is in milliseconds, not seconds.
-    let date = new Date(ts*1000);
+    let dbdate = new Date(ts*1000);
+    let tzOffset=dbdate.getTimezoneOffset();
+    let date=new Date(ts*1000+tzOffset*60*1000);
     let day = "" +date.getDate();
     let month = ""+(date.getMonth()+1);
 //     let year = ""+date.getFullYear();
@@ -67,7 +69,9 @@ function retrieveMeters(listLoc,dataLoc) {
 }
 
 function tsfromEndDate(endDate){
-    let ts = Math.round((new Date()).getTime() / 1000);
+    let d = new Date(Date.now()+24*3600*1000);
+    midnight=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(), 0, 0, 0);
+    let ts = Math.round(midnight/ 1000);
     if (endDate.getTime()>0){
         ts=Math.round(endDate.getTime()/1000)+24*3600;
     }
@@ -85,7 +89,7 @@ function adjustTime(measureArray){
   //"result" is in UTC time zone, irrad is in eastern europe time zone !!
   let adjustedArray = measureArray.map(function callback(currentValue){
                           let ed = new Date(currentValue.ts*1000);
-                          tzOffset=ed.getTimezoneOffset();
+                          let tzOffset=ed.getTimezoneOffset();
                           ed=ed.valueOf()-tzOffset*60*1000;
                           let edUtc=new Date(ed);
                           currentValue.ts=edUtc/1000;
