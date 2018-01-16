@@ -5,10 +5,10 @@ require_once "common.php";
 
 $db = connect_to_db();
 
+date_default_timezone_set("UTC");
 
 function compute_hash($reqdate){
 // Build API key from login, password, date
-date_default_timezone_set("UTC");
   $string = rbusername.rbpass.$reqdate;
 
   $hash = sha1($string, true);
