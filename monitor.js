@@ -99,10 +99,10 @@ function adjustTime(measureArray){
 
 function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     console.log("zc: "+zc);
-    serialNum=serialInfo.serial;
-    whToW=1; // This is for Wh to W conversion when step is 1h...
+    let serialNum=serialInfo.serial;
+    let whToW=1; // This is for Wh to W conversion when step is 1h...
 //http://localhost/~heusse/Monitor/get1h.php?serial=216670215&start=1512814200&end=1512823800
-
+    let borderDash=[];
     let ts = tsfromEndDate(endDate);
 
     if(zc){ //zc==null means main graph
@@ -131,15 +131,21 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
                 wToWc=(!zc)?1/peakPower[result[0].serial]:1; // W / Wc in main  graph, kW in the other
                 ithMeterData.push(Math.round(item.prod*whToW*wToWc)/1000);
                 });
-
+            let max=ithMeterData.reduce(function(a, b) {
+                    return Math.max(a, b);
+                });
+            if(max==0){
+                borderDash=[2,4];
+            }
             myData.push({label: meterNames[result[0].serial], // ""+resultAdj[0].serial+" "+ 
                 //  backgroundColor: 'none',
                 borderColor: `hsl(${Math.round((nbMeterDone)/(nbMeters)*360)+45}, 100%,50%)`,
 //                 pointBorderWidth: peakPower[result[0].serial]/12,
 //                 borderWidth:1,
-                pointBorderWidth: 1,
+                pointBorderWidth: 0.2,
                 borderWidth:peakPower[result[0].serial]/12,
-                data: ithMeterData
+                borderDash:borderDash,
+                data: ithMeterData,
                 });
         }
         nbMetersOK++;
@@ -217,13 +223,13 @@ function zoomSelected(){
     // reduce size of main chart
     gcd=document.getElementById("globalChartDiv");
     if(serialNum>0){
-        gcd.style.height="35vh";
-        updateMainChart(8);
+//         gcd.style.height="35vh";
+//         updateMainChart(8);
         window.scrollTo(0,Math.round($("#zoomSelect").offset().top));
     }
     else{
-        gcd.style.height="";
-        updateMainChart(12);
+//         gcd.style.height="";
+//         updateMainChart(12);
         window.scrollTo(0,0);
     }
 }
@@ -278,7 +284,7 @@ function retrieveRef(zc){
     //when?
     let ts = tsfromEndDate(new Date(Date.parse($("#zoomenddate")[0].value)));
     let nbDays=zoomNbDays;
-    whToW=6;
+    let whToW=6;
 
     let myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
     $.getJSON(myUrl, function(result){
