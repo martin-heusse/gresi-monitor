@@ -26,7 +26,7 @@ $endts= strtotime("$dateYr-$dateMonth-01T00:00:00");
 
 $reqArgs=array($_GET['serial'],$startts,$endts);
 
-$qr="select serial,sum(prod) from monitorreadings where serial=? and ts between ? and  ? ";
+$qr="select serial,sum(prod) from ".tp."readings where serial=? and ts between ? and  ? ";
 // Oddly, summing on prod from XXirrad table does not give the good results
 $select_messages = $db->prepare($qr);
 $select_messages->setFetchMode(PDO::FETCH_KEY_PAIR);
