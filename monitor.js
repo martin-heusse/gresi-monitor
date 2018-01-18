@@ -178,6 +178,18 @@ function dataRetrieved(statusChar,destCtx,zc){
 }
 
 function doPlot(destCtx,isMainPlot){
+    if (myData.length==0){
+        console
+        let chart = new Chart(destCtx, {
+            options: {
+                title: {
+                  display: true,
+                  text: '>>>> Pas de données pour cette date <<<<'
+                }
+            }
+        });
+        return chart;
+    }
     let chart = new Chart(destCtx, {
         // The type of chart we want to create
         type: 'line',
