@@ -55,7 +55,7 @@ if (isset($_POST['dataspan'])){
 
 <div class="sc" style="width:80%; padding:6px;">
 <?php header_form(basename(__FILE__));?>
-  Afficher la semaine se terminant le:
+  Afficher la semaine se terminant le : 
   <input type="date" onChange='this.form.submit();'  id="enddate" name="enddate" value="<?php echo $enddate;?>"/>
   <input type="submit"/>
   <input type="submit" name="prevweek" value="<<"/>

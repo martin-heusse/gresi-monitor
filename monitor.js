@@ -138,7 +138,6 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
                 borderDash=[2,4];
             }
             myData.push({label: meterNames[result[0].serial], // ""+resultAdj[0].serial+" "+ 
-                //  backgroundColor: 'none',
                 borderColor: `hsl(${Math.round((nbMeterDone)/(nbMeters)*360)+45}, 100%,50%)`,
 //                 pointBorderWidth: peakPower[result[0].serial]/12,
 //                 borderWidth:1,
@@ -146,6 +145,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
                 borderWidth:peakPower[result[0].serial]/12,
                 borderDash:borderDash,
                 data: ithMeterData,
+                backgroundColor:'rgba(0, 0, 0, 0.05)'
                 });
         }
         nbMetersOK++;
