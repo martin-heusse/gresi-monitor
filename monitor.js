@@ -3,8 +3,8 @@ let myLabels=[];
 let myData=[];
 let zc={zoomChart:null}; // holds the pointer to the zoom chart object, to destroy it when needed
 let mc={mainChart:null}; // holds the pointer to the main chart object
-let meterNames=[]; // serial -> name
-let peakPower=[]; // serial -> peak_power
+let meterNames={}; // serial -> name
+let peakPower={}; // serial -> peak_power
 let endDate=null;
 let nbProdDone=0;nbProd=0;
 let prodString="";
@@ -123,6 +123,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
         if(result.length>0){
             // Process the data that was just fetched
             let ithMeterData=[];
+            let colIndex=(Object.keys(meterNames)).indexOf(result[0].serial.toString());
             myLabels=[];
             if(zc || !$("#radio1h").prop( "checked" ))
               result=adjustTime(result);
@@ -137,8 +138,8 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             if(max==0){
                 borderDash=[2,4];
             }
-            myData.push({label: meterNames[result[0].serial], // ""+resultAdj[0].serial+" "+ 
-                borderColor: `hsl(${Math.round((nbMeterDone)/(nbMeters)*360)+45}, 100%,50%)`,
+            let newData={label: meterNames[result[0].serial], // ""+resultAdj[0].serial+" "+  
+                borderColor: `hsl(${Math.round((1+colIndex)/(nbMeters)*360)+45}, 100%,50%)`,
 //                 pointBorderWidth: peakPower[result[0].serial]/12,
 //                 borderWidth:1,
                 pointBorderWidth: 0.2,
@@ -146,7 +147,11 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
                 borderDash:borderDash,
                 data: ithMeterData,
                 backgroundColor:'rgba(0, 0, 0, 0.05)'
-                });
+                };
+            if(zc)
+                myData.push(newData);
+            else
+                myData[colIndex]=newData;
         }
         nbMetersOK++;
         dataRetrieved("+",destCtx,zc);
