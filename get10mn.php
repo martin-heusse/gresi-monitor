@@ -18,7 +18,7 @@ FROM ".tp."readings
 WHERE serial=?
 AND ts BETWEEN ? and ?
 UNION
-SELECT ? as serial, ts, 0
+SELECT ? as serial, ts, -1
 FROM ".tp."readings
 WHERE ts BETWEEN ? AND ?
 AND (ts) NOT IN ( SELECT ts FROM ".tp."readings WHERE serial=?)

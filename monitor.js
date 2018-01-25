@@ -129,7 +129,8 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             result.forEach(function(item) {
                 myLabels.push(convertTS(item.ts)); // overriding previous ones, but it's always the same thing, as ensured by the php call
                 wToWc=(!zc)?1/peakPower[result[0].serial]:1; // W / Wc in main  graph, kW in the other
-                ithMeterData.push(Math.round(item.prod*whToW*wToWc)/1000);
+                if(item.prod>=0)ithMeterData.push(Math.round(item.prod*whToW*wToWc)/1000);
+                else ithMeterData.push(null);
                 });
             let max=ithMeterData.reduce(function(a, b) {
                     return Math.max(a, b);

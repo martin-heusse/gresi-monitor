@@ -16,7 +16,7 @@ FROM ".tp."irrad
 WHERE serial=?
 AND ts BETWEEN ? and ?
 UNION
-SELECT ? as serial, ts, 0, 0
+SELECT ? as serial, ts, -1, 0
 FROM ".tp."irrad
 WHERE ts BETWEEN ? AND ?
 AND (ts) NOT IN ( SELECT ts FROM ".tp."irrad WHERE serial=?)
