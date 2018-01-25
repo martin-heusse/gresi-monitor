@@ -38,7 +38,6 @@ function convertTS(ts){
 function prepareZoom(listCounters){
     myOptions="<option></option>";
     listCounters.forEach(function(element) {
-        console.log(element.serial);
         myOptions+="<option value="+element.serial+">"+element.name+"</option>";
         });
     document.getElementById('zoomSelect').innerHTML=myOptions;
@@ -164,7 +163,6 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
 
 function dataRetrieved(statusChar,destCtx,zc){
     nbMeterDone++;
-    console.log(nbMeterDone);
     document.getElementById('progress').innerHTML+=statusChar;
     // Once all the data is in myData array, plot it
     if(nbMeterDone==nbMeters){
@@ -335,7 +333,6 @@ function displayMonthly(endDate,counterList){
         let myUrl=document.getElementById("dataUrlMonth").value+"?serial="+counterList[i].serial+"&end="+ts;
         $.getJSON(myUrl, function(result){
             for (x in result){ //only one iteration / x is the serial
-                console.log(x + " " + result[x]);
                 prodString+="<TR><TD>";
                 prodString+= " "+ meterNames[x] + " </TD><TD> "+ Math.round(result[x]/1000)  +" kWh </TD></TR>";
             }
@@ -344,7 +341,6 @@ function displayMonthly(endDate,counterList){
                 console.log("Done prod");
                 prodString+="</TABLE>";
                 $("#MonthlyProd")[0].innerHTML+=prodString;
-                console.log( prodString ) ;
             }
         })
     }
