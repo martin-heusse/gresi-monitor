@@ -96,6 +96,16 @@ function adjustTime(measureArray){
   return adjustedArray;
 }
 
+function colIndexFor(serialString){
+    namesArray=[];
+    for (let prop in meterNames) {
+        if (meterNames.hasOwnProperty(prop)) { 
+            namesArray.push(meterNames[prop]);
+        }
+    }
+    return namesArray.sort().indexOf(meterNames[serialString]);
+}
+
 function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     console.log("zc: "+zc);
     let serialNum=serialInfo.serial;
@@ -122,7 +132,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
         if(result.length>0){
             // Process the data that was just fetched
             let ithMeterData=[];
-            let colIndex=(Object.keys(meterNames)).indexOf(result[0].serial.toString());
+            let colIndex=colIndexFor(result[0].serial.toString());
             myLabels=[];
             if(zc || !$("#radio1h").prop( "checked" ))
               result=adjustTime(result);
