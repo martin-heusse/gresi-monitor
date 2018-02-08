@@ -9,10 +9,12 @@ let endDate=null;
 let nbProdDone=0;nbProd=0;
 let prodString="";
 
-let zoomNbDays=0.8;
+let zoomNbDays=0.7;
 let mainNbDays=7;
-let mainNbDays10mn=1.75;
+let mainNbDays10mn=0.7;
+let lastShownHour=21;
 
+// Retun a string for displaying the date of the provided timestamp
 function convertTS(ts){
     // Create a new JavaScript Date object based on the timestamp
     // multiplied by 1000 so that the argument is in milliseconds, not seconds.
@@ -25,13 +27,13 @@ function convertTS(ts){
     // Hours part from the timestamp
     let hours = date.getHours();
     // Minutes part from the timestamp
-//     let minutes = "0" + date.getMinutes();
+    let minutes = "0" + date.getMinutes();
     // Seconds part from the timestamp
 //     let seconds = "0" + date.getSeconds();
 
     // Will display time in 10:30:23 format
 //     return day +"/" + month + "/"+year+ " "+ hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-    return day +"/" + month + " "+ hours + "h" ;
+    return day +"/" + month + " "+ hours + "h" + ':' + minutes.substr(-2) ;
 //     return date.toLocaleString();
 }
 
@@ -67,11 +69,11 @@ function retrieveMeters(listLoc,dataLoc) {
 }
 
 function tsfromEndDate(endDate){
-    let d = new Date(Date.now()+24*3600*1000);
-    midnight=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(), 0, 0, 0);
+    let d = new Date(Date.now());
+    midnight=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(), lastShownHour, 0, 0);
     let ts = Math.round(midnight/ 1000);
     if (endDate.getTime()>0){
-        ts=Math.round(endDate.getTime()/1000)+24*3600;
+        ts=Math.round(endDate.getTime()/1000)+lastShownHour*3600;
     }
     return ts;
 }
@@ -293,8 +295,10 @@ function retrieveIrrad(zc){
             }
             chartData.datasets.push({label:"Satellite",
                                      borderColor: "red",
-                                     pointBorderWidth: 0,
+                                     pointBorderWidth: 0.75,
                                      borderWidth:1,
+                                     pointStyle:"star",
+                                     pointRadius:6,
                                      data:irradData});
             zc.zoomChart.update();
         });
@@ -315,7 +319,6 @@ function retrieveRef(zc){
     let myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
     $.getJSON(myUrl, function(result){
             chartData=zc.zoomChart.data;
-            console.log(result);
             console.log("chartdatalenght="+chartData.labels.length)
             //console.log(chartData); //chartData.labels chartData.datasets[]
 //             console.log(result); //chartData.labels chartData.datasets[]
@@ -324,7 +327,7 @@ function retrieveRef(zc){
             for (var i = 0, len = chartData.labels.length, lenr = result.length; i < len && i<lenr; i++) {
                 refData.push(result[i].prod*whToW/1000);
             }
-            chartData.datasets.push({label:"ref",
+            chartData.datasets.push({label:"Référence",
                                      borderColor: "blue",
                                      pointBorderWidth: 0,
                                      borderWidth:0.5,
