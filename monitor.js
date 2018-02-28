@@ -114,6 +114,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     let whToW=1; // This is for Wh to W conversion when step is 1h...
 //http://localhost/~heusse/Monitor/get1h.php?serial=216670215&start=1512814200&end=1512823800
     let borderDash=[];
+    let bkgdCol='rgba(0, 0, 0, 0.05)';
     let ts = tsfromEndDate(endDate);
 
     if(zc){ //zc==null means main graph
@@ -149,6 +150,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
                 });
             if(max==0){
                 borderDash=[2,4];
+                bkgdCol='rgba(150, 0, 0, 1)';
             }
             let newData={label: meterNames[result[0].serial], // ""+resultAdj[0].serial+" "+  
                 borderColor: `hsl(${Math.round((1+colIndex)/(nbMeters)*360)+45}, 100%,50%)`,
@@ -158,7 +160,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
                 borderWidth:peakPower[result[0].serial]/12,
                 borderDash:borderDash,
                 data: ithMeterData,
-                backgroundColor:'rgba(0, 0, 0, 0.05)'
+                backgroundColor:bkgdCol
                 };
             if(zc)
                 myData.push(newData);
