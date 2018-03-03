@@ -5,11 +5,7 @@ require_once "common.php";
 
 $db = connect_to_db();
 
-$qr="select * from ".tp."meters order by name";
-$select_messages = $db->prepare($qr);
-$select_messages->setFetchMode(PDO::FETCH_ASSOC);
-$select_messages->execute();
-$meters =$select_messages->fetchAll();
+$meters = get_meter_list($db);
 header('Content-Type: application/json');
 echo json_encode($meters);
 

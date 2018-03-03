@@ -8,7 +8,7 @@ define('dataUrl10mn',baseUrl.'get10mn.php');
 define('dataUrlMonth',baseUrl.'getMonthlyProd.php');
 
 
-pageHeader("Monitoring");
+pageHeader(nameAppli());
 date_default_timezone_set("Europe/Paris");
 ?>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>

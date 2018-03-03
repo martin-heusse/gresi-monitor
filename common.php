@@ -19,13 +19,21 @@ function pageHeader($pageDesc){
                 width:95vw;
                 height:60vh;
                 margin-bottom:6px}
-      TABLE.dm{width:40%;}
+      TABLE.dm{width:40%;border-collapse: collapse;}
+      TABLE.prod{border: 2px solid black; border-collapse: collapse;}
+      TD{border: 1px solid black; padding-left: 5px; padding-right: 3px; padding-top: 3px; padding-bottom: 2px}
+      H1{font-family: Sans-Serif; text-align:center;}
      </STYLE>
 
 
 	</head>
 
-	<body>';
+	<body>
+	<H1>'.$pageDesc.'</H1>';
+}
+
+function nameAppli(){
+  return "TablOWatt";
 }
 
 function pageFoot(){
@@ -49,6 +57,15 @@ function pace(){
 
 function date_to_str($time){ // Reciprocal of builtin strtotime()
   return date("Y-m-d\TH:i:s",$time);
+}
+
+function get_meter_list($db)
+{
+  $qr="select * from ".tp."meters order by name";
+  $select_messages = $db->prepare($qr);
+  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+  $select_messages->execute();
+  return $select_messages->fetchAll();
 }
 
 ?>
