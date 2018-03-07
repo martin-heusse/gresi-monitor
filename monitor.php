@@ -79,7 +79,9 @@ if (isset($_POST['dataspan'])){
   <canvas id="zoomChart"></canvas>
 </div>
 
-<div id="MonthlyProd" style="margin-top:1%;" class="sc" >
+<div class="sc">
+<span id="MonthlyProd" style="margin-top:2%;display: inline-block" > </span>
+<span style="margin-top:2%;margin-left:10px";><a  href="./yearlyprod.php"> Productions annuelles</a></span>
 </div>
 </body>
 </html>

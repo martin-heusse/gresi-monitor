@@ -342,7 +342,7 @@ function displayMonthly(endDate,counterList){
     let ts = tsfromEndDate(endDate)-3601;// go back in time 1h, to not fall on the next month when it's the last day
     console.log("displayMontly"+ts);
     let myDate=new Date(ts*1000);
-    prodString = "Production pour le mois "+ (myDate.getMonth()+1) + "/"+ myDate.getFullYear() +"<BR>";
+    prodString = "<B>Productions pour le mois "+ (myDate.getMonth()+1) + "/"+ myDate.getFullYear() +"</B><BR/>";
     prodString +=  '<table class="dm">';
     nbProd=counterList.length;
     for (i=0;i<nbProd;i++){
