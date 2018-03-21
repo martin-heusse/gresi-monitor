@@ -63,7 +63,9 @@ if (isset($_POST['dataspan'])){
   <input type="submit" name="nextday" value=">"/>
   <input type="submit" name="nextweek" value=">>"/>
   <input id="radio1h" type="radio" onChange='this.form.submit();' name="dataspan" value="1h" <?php echo $main1h?"checked='checked'":"";?>/><label for="radio1h"> 1h</label>
-  <input id="radio10mn" type="radio"  onChange='this.form.submit();' name="dataspan" value="10mn" <?php echo (!$main1h)?"checked='checked'":"";?>/><label for="radio10mn"> 10mn</label>
+  <input id="radio10mn" type="radio"  onChange='this.form.submit();' name="dataspan" value="10mn" <?php echo (!$main1h) ?
+           "checked='checked'":"";?>/><label for="radio10mn"> 10mn</label>
+  <input type="button" id="hideAll" value="Cacher tout" style="float: right;"/>
 </form>
 </div>
 

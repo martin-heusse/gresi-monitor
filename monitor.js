@@ -264,6 +264,13 @@ function zoomSelected(){
     }
 }
 
+function hideAll(){
+  mc.mainChart.data.datasets.forEach(function(ds) {
+    ds.hidden = !ds.hidden;
+  });
+  mc.mainChart.update();
+}
+
 function findTSMatching(element){
     //"this" is date label from the zoom chart
     return 0==this.localeCompare(convertTS(element.ts-1800));
@@ -373,6 +380,7 @@ $( document ).ready(function() {
     $("#zoomSelect").change(zoomSelected);
     $("#irradBox").change(zoomSelected);
     $("#zoomenddate").change(zoomSelected);
+    $("#hideAll").click(hideAll);
     // let endDate=new Date($("#enddate").value);
         
     });
