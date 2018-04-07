@@ -9,7 +9,7 @@ function computeSum(colNum){
           sum += parseFloat(value);
     }
   })
-  return sum;
+  return (Math.round(sum*10)/10).toFixed(1);
 }
 
 $(document).ready(function(){

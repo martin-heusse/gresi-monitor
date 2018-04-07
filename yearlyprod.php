@@ -43,7 +43,7 @@ foreach($meters as $m){
     $select_messages->setFetchMode(PDO::FETCH_ASSOC);
     $select_messages->execute();
     $prod=$select_messages->fetchAll()[0];
-    echo "<TD class=prod$i> ".round($prod["tot"],1)."    </TD>";
+    echo "<TD class=prod$i align='right'> ".round($prod["tot"],1)."    </TD>";
     $grandTotal+=$prod["tot"];
     $from=$to;$y1=$y1+1;
     
@@ -52,7 +52,7 @@ foreach($meters as $m){
 }
 echo "<TR><B><TD></TD><TD></TD>";;
 for ($i=0;$i<$MAX_YEARS;$i++){
-  echo"<TD id=$i class=totProd></TD>";
+  echo"<TD id=$i class=totProd align='right'></TD>";
 }
 echo "</B></TR>\n";
 
