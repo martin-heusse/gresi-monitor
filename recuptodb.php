@@ -79,7 +79,7 @@ function get_meter_lastts($serial,$_db){
   $select_messages->execute();
   $res =$select_messages->fetchAll();
   if(!count($res)){
-    $qr = "insert into ".tp."meters values ($serial , '', '', 0, 0, 0)";
+    $qr = "insert into ".tp."meters values ($serial , '', '', 0, 0, 0, 0)";
     echo "$qr\n";
     $insert_stmt = $_db->prepare($qr);
     $insert_stmt->execute();
