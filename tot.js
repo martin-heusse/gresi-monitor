@@ -14,7 +14,6 @@ function computeSum(colNum){
 
 $(document).ready(function(){
 $('.totProd').each(function() {
-    console.log(this.id);
     this.innerHTML=computeSum(this.id);
 });
 });
