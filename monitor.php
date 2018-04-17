@@ -27,11 +27,30 @@ function shiftday(&$ed,$shiftval){
         $ed=date("Y-m-d",time()+3600*24*$shiftval);
     }
 }
-
 if (isset($_POST['enddate'])){
     $enddate=$_POST['enddate'];
 }
 else $enddate="";
+
+if (isset($_POST['zoommeter'])){
+    $zoommeter=$_POST['zoommeter'];
+}
+else $zoommeter="";
+
+if (isset($_POST['irradbox'])){
+    $irradbox=$_POST['irradbox'];
+}
+else $irradbox="";
+
+if (isset($_POST['zoomenddate'])){
+    $zoomenddate=$_POST['zoomenddate'];
+}
+else $zoomenddate="";
+?>
+<input type=hidden id=postzoommeter value = "<?php print( $zoommeter ); ?>"/>
+<input type=hidden id=postirradbox value = "<?php print( $irradbox ); ?>"/>
+<input type=hidden id=postzoomenddate value = "<?php print( $zoomenddate ); ?>"/>
+<?php
 
 if (isset($_POST['prevday']))
     shiftday($enddate,-1);
@@ -75,8 +94,8 @@ if (isset($_POST['dataspan'])){
 </div>
 
 
-<select id="zoomSelect" disabled></select>  <input type="checkbox" id="irradBox"><label for="irradBox"> Satellite</label>
-<span style="margin-left:10%;">Période de référence :</span><input style="margin-left:1%;" type="date" id="zoomenddate" name="zoomenddate"/>
+<select id="zoomSelect" name="zoommeter" disabled form="fid"></select>  <input type="checkbox" id="irradBox" name="irradbox" form="fid"><label for="irradBox"> Satellite</label>
+<span style="margin-left:10%;">Période de référence :</span><input style="margin-left:1%;" type="date" id="zoomenddate" name="zoomenddate" form="fid"/>
 <div class="chartClass">
   <canvas id="zoomChart"></canvas>
 </div>

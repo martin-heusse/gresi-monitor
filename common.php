@@ -17,7 +17,7 @@ function pageHeader($pageDesc){
                 margin-right: auto;}
       DIV.chartClass{border-style: solid;
                 width:95vw;
-                height:60vh;
+                height:40vh;
                 margin-bottom:6px}
       TABLE.dm{border-collapse: collapse;}
       TABLE.prod{border: 2px solid black; border-collapse: collapse;}
@@ -41,7 +41,7 @@ function pageFoot(){
 }
 
 function header_form($filename){
-    echo "<form method=\"post\" action=\"$filename\">";
+    echo "<form method=\"post\" action=\"$filename\" id=\"fid\">";
 }
 
 

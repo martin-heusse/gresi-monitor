@@ -38,9 +38,11 @@ function convertTS(ts){
 }
 
 function prepareZoom(listCounters){
-    myOptions="<option></option>";
+    let myOptions="<option></option>";
+    let zoomMeterInPost=document.getElementById("postzoommeter").value;
     listCounters.forEach(function(element) {
-        myOptions+="<option value="+element.serial+">"+element.name+"</option>";
+        let isSelected=(element.serial==zoomMeterInPost)?"selected":"";
+        myOptions+="<option value="+element.serial+" "+isSelected+">"+element.name+"</option>";
         });
     document.getElementById('zoomSelect').innerHTML=myOptions;
 }
@@ -184,8 +186,12 @@ function dataRetrieved(statusChar,destCtx,zc){
         document.getElementById('progress').innerHTML=nbMetersOK+" compteur(s) récupéré(s) !";
         document.getElementById('progressEnd').innerHTML="";
         $("#zoomSelect").prop('disabled', false);
-        if(zc==null)
+        if(zc==null){
             mc.mainChart=doPlot(destCtx,1); 
+            if(document.getElementById("postzoommeter").value.length>0){
+                zoomSelected();
+            }
+        }
         else{
             zc.zoomChart=doPlot(destCtx,0);
             retrieveIrrad(zc);
@@ -252,16 +258,16 @@ function zoomSelected(){
 
     // reduce size of main chart
     gcd=document.getElementById("globalChartDiv");
-    if(serialNum>0){
-//         gcd.style.height="35vh";
-//         updateMainChart(8);
-        window.scrollTo(0,Math.round($("#zoomSelect").offset().top));
-    }
-    else{
-//         gcd.style.height="";
-//         updateMainChart(12);
-        window.scrollTo(0,0);
-    }
+//     if(serialNum>0){
+// //         gcd.style.height="35vh";
+// //         updateMainChart(8);
+//         window.scrollTo(0,Math.round($("#zoomSelect").offset().top));
+//     }
+//     else{
+// //         gcd.style.height="";
+// //         updateMainChart(12);
+//         window.scrollTo(0,0);
+//     }
 }
 
 function hideAll(){
@@ -381,7 +387,14 @@ $( document ).ready(function() {
     $("#irradBox").change(zoomSelected);
     $("#zoomenddate").change(zoomSelected);
     $("#hideAll").click(hideAll);
-    // let endDate=new Date($("#enddate").value);
+
+    // reset previous values of irradiation and ref date in zoom
+    if(document.getElementById("postirradbox").value.length>0){
+        document.getElementById("irradBox").checked = true;
+    }
+    if(document.getElementById("postzoomenddate").value.length>0){
+        document.getElementById("zoomenddate").value = document.getElementById("postzoomenddate").value;
+    }
         
     });
 
