@@ -271,10 +271,10 @@ function zoomSelected(){
 }
 
 function hideAll(){
-  mc.mainChart.data.datasets.forEach(function(ds) {
-    ds.hidden = !ds.hidden;
-  });
-  mc.mainChart.update();
+    mc.mainChart.data.datasets.forEach(function(ds) {
+      ds.hidden = !ds.hidden;
+    });
+    mc.mainChart.update();
 }
 
 function findTSMatching(element){
