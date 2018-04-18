@@ -46,10 +46,15 @@ if (isset($_POST['zoomenddate'])){
     $zoomenddate=$_POST['zoomenddate'];
 }
 else $zoomenddate="";
+if (isset($_GET['meters'])){
+    $meterstoconsider=$_GET['meters'];
+}
+else $meterstoconsider="";
 ?>
 <input type=hidden id=postzoommeter value = "<?php print( $zoommeter ); ?>"/>
 <input type=hidden id=postirradbox value = "<?php print( $irradbox ); ?>"/>
 <input type=hidden id=postzoomenddate value = "<?php print( $zoomenddate ); ?>"/>
+<input type=hidden id=meterstoconsider value = "<?php print( $meterstoconsider ); ?>"/>
 <?php
 
 if (isset($_POST['prevday']))
@@ -72,8 +77,8 @@ if (isset($_POST['dataspan'])){
 <input type=hidden id=dataUrl10mn value = "<?php print( dataUrl10mn ); ?>"/>
 <input type=hidden id=dataUrlMonth value = "<?php print( dataUrlMonth ); ?>"/>
 
-<div class="sc" style="width:80%; padding:6px;">
-<?php header_form(basename(__FILE__));?>
+<div class="sc" style="width:100%; padding:6px;">
+<?php header_form($_SERVER['REQUEST_URI']);?>
   Afficher la semaine se terminant le : 
   <input type="date" onChange='this.form.submit();'  id="enddate" name="enddate" value="<?php echo $enddate;?>"/>
   <input type="submit"/>
@@ -84,7 +89,8 @@ if (isset($_POST['dataspan'])){
   <input id="radio1h" type="radio" onChange='this.form.submit();' name="dataspan" value="1h" <?php echo $main1h?"checked='checked'":"";?>/><label for="radio1h"> 1h</label>
   <input id="radio10mn" type="radio"  onChange='this.form.submit();' name="dataspan" value="10mn" <?php echo (!$main1h) ?
            "checked='checked'":"";?>/><label for="radio10mn"> 10mn</label>
-  <input type="button" id="hideAll" value="Cacher tout" style="float: right;"/>
+  <input type="button" id="hideAll" value="Cacher tout" style="float: right;" title="Cacher ou afficher toutes les courbes"/>
+  <input type="button" id="GenerateURL" value="Filtrer" style="float: right;" title="Générer une page contenant uniquement les stations affichées" onclick="alert('Vous pourrez ajouter la page suivante à vos signets');"/>
 </form>
 </div>
 

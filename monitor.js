@@ -41,8 +41,8 @@ function prepareZoom(listCounters){
     let myOptions="<option></option>";
     let zoomMeterInPost=document.getElementById("postzoommeter").value;
     listCounters.forEach(function(element) {
-        let isSelected=(element.serial==zoomMeterInPost)?"selected":"";
-        myOptions+="<option value="+element.serial+" "+isSelected+">"+element.name+"</option>";
+        let isSelected=(element==zoomMeterInPost)?"selected":"";
+        myOptions+="<option value="+element+" "+isSelected+">"+meterNames[element]+"</option>";
         });
     document.getElementById('zoomSelect').innerHTML=myOptions;
 }
@@ -51,22 +51,25 @@ function retrieveMeters(listLoc,dataLoc) {
     // Get the list of serial numbers and call retrieveData() to eventually plot the data
     $.getJSON(listLoc, function(result){
         let i=0;
-        console.log(result);
-        prepareZoom(result);
-        displayMonthly(endDate,result);
-
+        // Meters to consider if in $_GET... (copied into hidden meterstoconsider by php)
+        let metersToShow=document.getElementById('meterstoconsider').value.split(",");
 
         document.getElementById('progress').innerHTML="Récupération des données";
         document.getElementById('progressEnd').innerHTML=">";
 
         let destCtx=document.getElementById("globalChart").getContext('2d');
-        nbMeters=result.length;
 
         for (i=0;i<result.length;i++){
-            meterNames[result[i].serial]=result[i].name;
-            peakPower[result[i].serial]=result[i].peak_power;
-            setTimeout(retrieveData, i*20,result[i],dataLoc,destCtx,null);  // setTimeout programs the calls to retrieveData once/second, in order to comply with rbeesolar policy
+            if(metersToShow[0].length==0 || metersToShow.findIndex(function(cur){return cur.localeCompare(result[i].name)==0})>=0){
+                nbMeters++;
+                meterNames[result[i].serial]=result[i].name;
+                peakPower[result[i].serial]=result[i].peak_power;
+                setTimeout(retrieveData, i*20,result[i],dataLoc,destCtx,null);  // setTimeout programs the calls to retrieveData once/second, in order to comply with rbeesolar policy
+            }
         }
+        prepareZoom(Object.keys(meterNames));
+        displayMonthly(endDate,Object.keys(meterNames));
+
     });
 }
 
@@ -277,6 +280,22 @@ function hideAll(){
     mc.mainChart.update();
 }
 
+function GenerateURL(){
+    let listShown=[]
+    mc.mainChart.data.datasets.forEach(function(ds) {
+        if(ds.hidden != true){
+            if(ds._meta[0].hidden != true)
+                listShown.push(ds.label);
+        }
+        if(ds.hidden == true){
+            if(ds._meta[0].hidden == false)
+                listShown.push(ds.label);
+        }
+    });
+    window.open(window.location.href.split("?")[0]+"?meters="+listShown.join());
+}
+
+
 function findTSMatching(element){
     //"this" is date label from the zoom chart
     return 0==this.localeCompare(convertTS(element.ts-1800));
@@ -359,7 +378,7 @@ function displayMonthly(endDate,counterList){
     prodString +=  '<table class="dm">';
     nbProd=counterList.length;
     for (i=0;i<nbProd;i++){
-        let myUrl=document.getElementById("dataUrlMonth").value+"?serial="+counterList[i].serial+"&end="+ts;
+        let myUrl=document.getElementById("dataUrlMonth").value+"?serial="+counterList[i]+"&end="+ts;
         $.getJSON(myUrl, function(result){
             for (x in result){ //only one iteration / x is the serial
                 prodString+="<TR><TD>";
@@ -387,6 +406,7 @@ $( document ).ready(function() {
     $("#irradBox").change(zoomSelected);
     $("#zoomenddate").change(zoomSelected);
     $("#hideAll").click(hideAll);
+    $("#GenerateURL").click(GenerateURL);
 
     // reset previous values of irradiation and ref date in zoom
     if(document.getElementById("postirradbox").value.length>0){
