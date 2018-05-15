@@ -211,7 +211,7 @@ function doPlot(destCtx,isMainPlot){
             options: {
                 title: {
                   display: true,
-                  text: '>>>> Pas de données pour cette date <<<<'
+                  text: '>>>> Pas de données (pour cette date ?) <<<<'
                 }
             }
         });
@@ -261,16 +261,16 @@ function zoomSelected(){
 
     // reduce size of main chart
     gcd=document.getElementById("globalChartDiv");
-//     if(serialNum>0){
-// //         gcd.style.height="35vh";
-// //         updateMainChart(8);
+    if(serialNum>0){
+        gcd.style.height="35vh";
+        updateMainChart(8);
 //         window.scrollTo(0,Math.round($("#zoomSelect").offset().top));
-//     }
-//     else{
-// //         gcd.style.height="";
-// //         updateMainChart(12);
+    }
+    else{
+        gcd.style.height="70vh";
+        updateMainChart(12);
 //         window.scrollTo(0,0);
-//     }
+    }
 }
 
 function hideAll(){
