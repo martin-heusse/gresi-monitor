@@ -1,6 +1,8 @@
 let nbMeterDone=0,nbMeters=0,nbMetersOK=0;
 let myLabels=[];
 let myData=[];
+let endPoints=[];
+
 let zc={zoomChart:null}; // holds the pointer to the zoom chart object, to destroy it when needed
 let mc={mainChart:null}; // holds the pointer to the main chart object
 let meterNames={}; // serial -> name
@@ -141,14 +143,24 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             // Process the data that was just fetched
             let ithMeterData=[];
             let colIndex=colIndexFor(result[0].serial.toString());
+            let isLastTs=0;
             myLabels=[];
             if(zc || !$("#radio1h").prop( "checked" ))
               result=adjustTime(result);
             result.forEach(function(item) {
                 myLabels.push(convertTS(item.ts)); // overriding previous ones, but it's always the same thing, as ensured by the php call
                 wToWc=(!zc)?1/peakPower[result[0].serial]:1; // W / Wc in main  graph, kW in the other
-                if(item.prod>=0)ithMeterData.push(Math.round(item.prod*whToW*wToWc)/1000);
-                else ithMeterData.push(null);
+                if(item.prod>=0){
+                    ithMeterData.push(Math.round(item.prod*whToW*wToWc)/1000);
+                    isLastTs=0;
+                }
+                else{
+                    ithMeterData.push(null);
+                    if(!isLastTs){
+                        endPoints.push({meterName:result[0].serial,endts:item.ts});
+                        isLastTs=1;
+                    }
+                }
                 });
             let max=ithMeterData.reduce(function(a, b) {
                     return Math.max(a, b);
@@ -186,6 +198,7 @@ function dataRetrieved(statusChar,destCtx,zc){
     document.getElementById('progress').innerHTML+=statusChar;
     // Once all the data is in myData array, plot it
     if(nbMeterDone==nbMeters){
+        console.log(endPoints);
         document.getElementById('progress').innerHTML=nbMetersOK+" compteur(s) récupéré(s) !";
         document.getElementById('progressEnd').innerHTML="";
         $("#zoomSelect").prop('disabled', false);
