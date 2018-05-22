@@ -66,7 +66,7 @@ echo "<BR/><B>Grand Total: ".round($grandTotal)." kWh</B>";
 echo "</DIV>";
 
 // Maintenant, par demi-année
-echo "<h2>totaux par demi-année</h2>";
+echo "<h2>Totaux par demi-année</h2>";
 echo "<DIV class='sc'><TABLE CLASS='prod'>";
 
 echo "<TR><TD>Compteur</TD><TD>Date</TD>";
@@ -90,11 +90,11 @@ foreach($meters as $m){
   for ($i=0;$i<$MAX_YEARS;$i++){
     $to=strtotime("$y1-01-01");
     $curprd=getMonthProd($db,$m,$from,$to);
-    echo "<TD class=prod$i align='right'> ".round($curprd,1)."    </TD>";
+    echo "<TD align='right'> ".round($curprd,1)."    </TD>";
     $from1=$to;
     $to=strtotime("$y1-$m0-$d0");
     $curprd=getMonthProd($db,$m,$from1,$to);
-    echo "<TD class=prod$i align='right'> ".round($curprd,1)."    </TD>";
+    echo "<TD align='right'> ".round($curprd,1)."    </TD>";
     $from=$to;$y1=$y1+1;
   }
   echo "</TR>\n";
