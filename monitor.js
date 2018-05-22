@@ -12,7 +12,7 @@ let prodString="";
 let zoomNbDays=0.7;
 let mainNbDays=7;
 let mainNbDays10mn=0.7;
-let lastShownHour=21;
+let lastShownHour=20; // !! UTC
 
 // Retun a string for displaying the date of the provided timestamp
 function convertTS(ts){
@@ -75,8 +75,8 @@ function retrieveMeters(listLoc,dataLoc) {
 
 function tsfromEndDate(endDate){
     let d = new Date(Date.now());
-    midnight=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(), lastShownHour, 0, 0);
-    let ts = Math.round(midnight/ 1000);
+    let thisIstheEnd=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(), lastShownHour, 0, 0);
+    let ts = Math.round(thisIstheEnd/ 1000);
     if (endDate.getTime()>0){
         ts=Math.round(endDate.getTime()/1000)+lastShownHour*3600;
     }
