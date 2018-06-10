@@ -3,6 +3,8 @@ require_once "constants.php";
 require_once "ids.php"; // Contains the identifier + Password to connect to RTone web API, + to connect to DB
 require_once "common.php"; 
 
+$initialNbWeeks = 2; // if 0, retrieve from first meter connection. Otherwise, just get last $initialNbWeeks weeks
+
 $db = connect_to_db();
 
 date_default_timezone_set("UTC");
@@ -38,7 +40,11 @@ foreach ($meterList->list as $serial){
     $tsInDB = get_meter_lastts($serial,$db); echo "tsInDB : ". $tsInDB . " lastIndexDate:" . $lastIndexDate . "  ". date_to_str($lastIndexDate) ."\n";
     if($tsInDB == 0){
       echo "First retrieval -- ts in db: $tsInDB\n " ;
-      $startts = strtotime($meterInfo->firstConnectionDate)-24*3600; // hoping the first data retrieval occured in first 24h
+      if($initialNbWeeks){
+        $startts=time()-$initialNbWeeks*7*24*3600;
+      }
+      else
+        $startts = strtotime($meterInfo->firstConnectionDate)-7*24*3600; // hoping the first data retrieval occured during first week    
     }
     else{
       $startts = $tsInDB+1 ; // Just after last timestamp in DB
