@@ -8,6 +8,7 @@ define('tp','monitor'); // table prefix ! -- used everywhere
 
 // define('rbusername','demo'); // username -> in ids.php
 // define('rbpass','demo69550'); // password
+// define('mailadmin','toto@mydomain.com);
 // define('db_host','127.0.0.1'); // DB access config
 // define('db_username','root');
 // define('db_name','monitoring');
