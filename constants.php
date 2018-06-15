@@ -6,6 +6,8 @@ define('url_rb_Prod','https://pvmeter.com/solar/webservices/getDeviceProduction?
 define('url_rb_Info','https://pvmeter.com/solar/webservices/getDeviceInfo?'); // data Rbee
 define('tp','monitor'); // table prefix ! -- used everywhere
 
+define('mailalertsubject',"Alerte automatique production");
+
 // define('rbusername','demo'); // username -> in ids.php
 // define('rbpass','demo69550'); // password
 // define('mailadmin','toto@mydomain.com);
