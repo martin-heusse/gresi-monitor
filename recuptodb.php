@@ -6,6 +6,7 @@ require_once "common.php";
 $initialNbWeeks = 2; // if 0, retrieve from first meter connection. Otherwise, just get last $initialNbWeeks weeks
 
 $db = connect_to_db();
+if(is_null($db)) exit;
 
 date_default_timezone_set("UTC");
 
