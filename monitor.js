@@ -6,7 +6,7 @@ let mc={mainChart:null}; // holds the pointer to the main chart object
 let meterNames={}; // serial -> name
 let peakPower={}; // serial -> peak_power
 let endDate=null;
-let nbProdDone=0;nbProd=0;
+let nbProdDone=0;nbProd=0;totalProdMonth=0
 let prodString="";
 
 let zoomNbDays=0.7;
@@ -370,23 +370,26 @@ function retrieveRef(zc){
         });
 }
 
-function displayMonthly(endDate,counterList){
+function displayMonthly(endDate,meterList){
     let ts = tsfromEndDate(endDate)-3601;// go back in time 1h, to not fall on the next month when it's the last day
     console.log("displayMontly"+ts);
     let myDate=new Date(ts*1000);
     prodString = "<B>Productions pour le mois "+ (myDate.getMonth()+1) + "/"+ myDate.getFullYear() +"</B><BR/>";
     prodString +=  '<table class="dm">';
-    nbProd=counterList.length;
+    nbProd=meterList.length;
     for (i=0;i<nbProd;i++){
-        let myUrl=document.getElementById("dataUrlMonth").value+"?serial="+counterList[i]+"&end="+ts;
+        let myUrl=document.getElementById("dataUrlMonth").value+"?serial="+meterList[i]+"&end="+ts;
         $.getJSON(myUrl, function(result){
             for (x in result){ //only one iteration / x is the serial
                 prodString+="<TR><TD>";
                 prodString+= " "+ meterNames[x] + " </TD><TD> "+ Math.round(result[x]/1000)  +" kWh </TD></TR>";
+                totalProdMonth+=result[x]/1000;
             }
             nbProdDone++;
             if(nbProdDone==nbProd){
                 console.log("Done prod");
+                prodString+="<TR><TD>";
+                prodString+= " <B>Total</B> </TD><TD> "+ Math.round(totalProdMonth)  +" kWh </TD></TR>";
                 prodString+="</TABLE>";
                 $("#MonthlyProd")[0].innerHTML+=prodString;
             }
