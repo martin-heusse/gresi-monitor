@@ -74,13 +74,14 @@ function retrieveMeters(listLoc,dataLoc) {
 }
 
 function tsfromEndDate(endDate){
-    let d = new Date(Date.now());
-    let thisIstheEnd=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(), lastShownHour, 0, 0);
-    let ts = Math.round(thisIstheEnd/ 1000);
     if (endDate.getTime()>0){
-        ts=Math.round(endDate.getTime()/1000)+lastShownHour*3600;
+        return Math.round(endDate.getTime()/1000)+lastShownHour*3600;
     }
-    return ts;
+    else {
+        let d = new Date(Date.now());
+        let thisIstheEnd=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(), lastShownHour, 0, 0);
+        return Math.round(thisIstheEnd/ 1000);
+    }
 }
 
 function updateMainChart(fontsize){
