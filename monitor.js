@@ -64,7 +64,7 @@ function retrieveMeters(listLoc,dataLoc) {
                 nbMeters++;
                 meterNames[result[i].serial]=result[i].name;
                 peakPower[result[i].serial]=result[i].peak_power;
-                setTimeout(retrieveData, i*20,result[i],dataLoc,destCtx,null);  // setTimeout programs the calls to retrieveData once/second, in order to comply with rbeesolar policy
+                setTimeout(retrieveData, i*20,result[i],dataLoc,destCtx,null);  // setTimeout paces the calls to the web API
             }
         }
         prepareZoom(Object.keys(meterNames));
