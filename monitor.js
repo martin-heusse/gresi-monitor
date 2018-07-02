@@ -13,7 +13,7 @@ let zoomNbDays=0.7;
 let mainNbDays=7;
 let mainNbDays10mn=0.7;
 let lastShownHour=20; // !! UTC
-
+let threshAdjustDate=6;// if last ts in db is before threshAdjustDate oclock in the morning, adjust date
 // Retun a string for displaying the date of the provided timestamp
 function convertTS(ts){
     // Create a new JavaScript Date object based on the timestamp
@@ -51,6 +51,7 @@ function retrieveMeters(listLoc,dataLoc) {
     // Get the list of serial numbers and call retrieveData() to eventually plot the data
     $.getJSON(listLoc, function(result){
         let i=0;
+        let lastTsInData=0;
         // Meters to consider if in $_GET... (copied into hidden meterstoconsider by php)
         let metersToShow=document.getElementById('meterstoconsider').value.split(",");
 
@@ -64,8 +65,19 @@ function retrieveMeters(listLoc,dataLoc) {
                 nbMeters++;
                 meterNames[result[i].serial]=result[i].name;
                 peakPower[result[i].serial]=result[i].peak_power;
+                if (result[i].lastts>lastTsInData) lastTsInData=result[i].lastts;
                 setTimeout(retrieveData, i*20,result[i],dataLoc,destCtx,null);  // setTimeout paces the calls to the web API
             }
+        }
+        //Adjust the enddate according to lastTs from the meters
+        console.log("lastTsInData:"+convertTS(lastTsInData));
+        console.log("limit:"+convertTS(tsfromEndDate(endDate)+(-lastShownHour+threshAdjustDate)*3600));
+        if(lastTsInData<tsfromEndDate(endDate)+(-lastShownHour+threshAdjustDate)*3600){
+            let d=new Date((lastTsInData)*1000);
+            if(d.getHours()<threshAdjustDate) d=new Date((lastTsInData-24*3600)*1000);
+            console.log(d);
+            endDate=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(), 0, 0, 0));
+            console.log("endDate set: "+endDate);
         }
         prepareZoom(Object.keys(meterNames));
         displayMonthly(endDate,Object.keys(meterNames));
@@ -115,7 +127,6 @@ function colIndexFor(serialString){
 }
 
 function retrieveData(serialInfo,dataLoc,destCtx,zc) {
-    console.log("zc: "+zc);
     let serialNum=serialInfo.serial;
     let whToW=1; // This is for Wh to W conversion when step is 1h...
 //http://localhost/~heusse/Monitor/get1h.php?serial=216670215&start=1512814200&end=1512823800

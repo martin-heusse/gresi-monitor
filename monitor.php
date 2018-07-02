@@ -65,10 +65,10 @@ if (isset($_POST['prevweek']))
     shiftday($enddate,-7);
 if (isset($_POST['nextweek']))
     shiftday($enddate,+7);
-$main1h=true;
+$main1h=false;
 if (isset($_POST['dataspan'])){
-    if(0==strcmp($_POST['dataspan'],"10mn"))
-        $main1h=false;
+    if(0==strcmp($_POST['dataspan'],"1h"))
+        $main1h=true;
 }
 ?>
 
