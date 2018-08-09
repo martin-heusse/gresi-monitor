@@ -78,6 +78,7 @@ function retrieveMeters(listLoc,dataLoc) {
             console.log(d);
             endDate=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(), 0, 0, 0));
             console.log("endDate set: "+endDate);
+            $("#enddate")[0].value="";
         }
         prepareZoom(Object.keys(meterNames));
         displayMonthly(endDate,Object.keys(meterNames));
