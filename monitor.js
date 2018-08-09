@@ -395,14 +395,14 @@ function displayMonthly(endDate,meterList){
         $.getJSON(myUrl, function(result){
             for (x in result){ //only one iteration / x is the serial
                 prodString+="<TR><TD>";
-                prodString+= " "+ meterNames[x] + " </TD><TD> "+ Math.round(result[x]/1000)  +" kWh </TD></TR>";
+                prodString+= " "+ meterNames[x] + " </TD><TD align='right'> "+ Math.round(result[x]/1000)  +" kWh </TD></TR>";
                 totalProdMonth+=result[x]/1000;
             }
             nbProdDone++;
             if(nbProdDone==nbProd){
                 console.log("Done prod");
                 prodString+="<TR><TD>";
-                prodString+= " <B>Total</B> </TD><TD> "+ Math.round(totalProdMonth)  +" kWh </TD></TR>";
+                prodString+= " <B>Total</B> </TD><TD align='right'> "+ Math.round(totalProdMonth)  +" kWh </TD></TR>";
                 prodString+="</TABLE>";
                 $("#MonthlyProd")[0].innerHTML+=prodString;
             }
