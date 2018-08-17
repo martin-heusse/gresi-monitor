@@ -164,11 +164,16 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
                 else ithMeterData.push(null);
                 });
             let max=ithMeterData.reduce(function(a, b) {
-                    return Math.max(a, b);
+                    if (a != null || b != null)
+                        return Math.max(a, b);
+                    else return null;
                 });
-            if(max==0){
+            if(max===0){
                 borderDash=[2,4];
                 bkgdCol='rgba(150, 0, 0, 1)';
+            }
+            else if(max===null){
+                borderDash=[2,4];
             }
             let newData={label: meterNames[result[0].serial], // ""+resultAdj[0].serial+" "+  
                 borderColor: `hsl(${Math.round((1+colIndex)/(nbMeters)*360)+45}, 100%,50%)`,
