@@ -7,6 +7,7 @@ let meterNames={}; // serial -> name
 let peakPower={}; // serial -> peak_power
 let endDate=null;
 let nbProdDone=0;nbProd=0;totalProdMonth=0
+let prodArray=[];
 let prodString="";
 
 let zoomNbDays=0.7;
@@ -392,22 +393,27 @@ function displayMonthly(endDate,meterList){
     let ts = tsfromEndDate(endDate)-3601;// go back in time 1h, to not fall on the next month when it's the last day
     console.log("displayMontly"+ts);
     let myDate=new Date(ts*1000);
-    prodString = "<B>Productions pour le mois "+ (myDate.getMonth()+1) + "/"+ myDate.getFullYear() +"</B><BR/>";
+    prodString = "<B>Productions pour le mois "+ (myDate.getMonth()+1) + "/"+ myDate.getFullYear() +"</B> (kWh)<BR/>";
     prodString +=  '<table class="dm">';
     nbProd=meterList.length;
     for (i=0;i<nbProd;i++){
         let myUrl=document.getElementById("dataUrlMonth").value+"?serial="+meterList[i]+"&end="+ts;
+
         $.getJSON(myUrl, function(result){
             for (x in result){ //only one iteration / x is the serial
-                prodString+="<TR><TD>";
-                prodString+= " "+ meterNames[x] + " </TD><TD align='right'> "+ Math.round(result[x]/1000)  +" kWh </TD></TR>";
+                prodArray.push({name:meterNames[x],prod:Math.round(result[x]/1000)});
                 totalProdMonth+=result[x]/1000;
             }
             nbProdDone++;
             if(nbProdDone==nbProd){
-                console.log("Done prod");
+                prodArray.sort(function(a, b){return a.name.localeCompare(b.name);});
+                console.log(prodArray);
+                for (j=0;j<nbProd;j++){
+                    prodString+="<TR><TD>";
+                    prodString+= " "+ prodArray[j].name + " </TD><TD align='right'> "+ prodArray[j].prod  +"</TD></TR>";
+                }
                 prodString+="<TR><TD>";
-                prodString+= " <B>Total</B> </TD><TD align='right'> "+ Math.round(totalProdMonth)  +" kWh </TD></TR>";
+                prodString+= " <B>Total</B> </TD><TD align='right'> "+ Math.round(totalProdMonth)  +" </TD></TR>";
                 prodString+="</TABLE>";
                 $("#MonthlyProd")[0].innerHTML+=prodString;
             }
