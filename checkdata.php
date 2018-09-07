@@ -23,8 +23,9 @@ $now=time(); # Current unix timestamp
 # First check if a meter is way behind
 $outdated_meters=[];
 foreach($meters as $m){
-  if(($now - $m["lastts"])/3600>$maxNbHoursSinceUpdate){
-    array_push($outdated_meters,$m["name"]);
+  $deltat=($now - $m["lastts"])/3600;
+  if($deltat>$maxNbHoursSinceUpdate){
+    array_push($outdated_meters,$m["name"]." (".number_format($deltat,2,",",".")."h)");
   }
 }
 
