@@ -59,7 +59,7 @@ if($tsi!=NULL && $tsf!=NULL){
     }
   }
   if(count($zero_prod_meters)){
-    $update_pb_str=$update_pb_str."Alerte production nulle : ".implode(', ',$zero_prod_meters )."\n";
+    $update_pb_str="Alerte production nulle : ".implode(', ',$zero_prod_meters )."\n\n". $update_pb_str;
   }
 }
 if(strlen($update_pb_str)){
