@@ -3,7 +3,7 @@ const prodURL="http://gresi21.fr/monitor/getWidgetSummary.php";
 const starttable="<TABLE style='width:26em; border: 2px double black; border-collapse: collapse;font-family: Sans-Serif;'><TR>";
 const endtable="</TR></TABLE>";
 
-const timespan={month:"du mois en cours",year:"depuis un an",total:"totale"};
+const timespan={month:"du mois en cours",year:"cette année",total:"totale"};
 
 function addCommas(nStr) {
     nStr += '';
