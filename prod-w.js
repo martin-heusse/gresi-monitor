@@ -1,6 +1,6 @@
 const prodURL="http://gresi21.fr/monitor/getWidgetSummary.php";
 
-const starttable="<TABLE style='border: 2px double black; border-collapse: collapse;font-family: Sans-Serif;'><TR>";
+const starttable="<TABLE style='width:26em; border: 2px double black; border-collapse: collapse;font-family: Sans-Serif;'><TR>";
 const endtable="</TR></TABLE>";
 
 const timespan={month:"du mois en cours",year:"depuis un an",total:"totale"};
@@ -9,7 +9,7 @@ function addCommas(nStr) {
     nStr += '';
     const rgx = /(\d+)(\d{3})/;
     while (rgx.test(nStr)) {
-        nStr = nStr.replace(rgx, '$1' + '.' + '$2');
+        nStr = nStr.replace(rgx, '$1' + ' ' + '$2');
     }
     return nStr;
 }
