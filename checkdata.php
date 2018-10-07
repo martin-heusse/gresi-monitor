@@ -7,7 +7,7 @@ $db = connect_to_db();
 
 
 # Parameters for alarm
-$maxNbHoursSinceUpdate=12;
+$maxNbHoursSinceUpdate=24;
 $nb_hours_prod=18;
 $thresh_null_readings=9; #1 unit = 10mn, 9 -> 1h30'
 
