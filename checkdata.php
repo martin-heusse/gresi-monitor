@@ -65,5 +65,7 @@ if($tsi!=NULL && $tsf!=NULL){
 if(strlen($update_pb_str)){
   mail(mailadmin,mailalertsubject,$update_pb_str,prepare_header());
 }
+#Backup msg for later use
+date_default_timezone_set("Europe/Paris");
 file_put_contents("check-msg.txt",$update_pb_str."<BR>(".date("d-m-Y H:i:s").")");
 ?>
