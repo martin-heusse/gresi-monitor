@@ -7,7 +7,7 @@ $db = connect_to_db();
 
 
 // $_GET should contain serial, start, end 
-// ex: http://localhost/~heusse/Monitor/get10mn.php?serial=216670215&start=1512814200&end=1512823800
+// ex: http://localhost/~heusse/Monitor/getMonthlyProd.php?serial=216670215&end=1512823800
 
 $endDate=$_GET['end'];
 $dateYr=date("Y",$endDate);
@@ -23,17 +23,18 @@ else{
     $dateYr++;
 }
 $endts= strtotime("$dateYr-$dateMonth-01T00:00:00");
+$serial=$_GET['serial'];
+$reqArgs=array($serial,$startts,$endts);
 
-$reqArgs=array($_GET['serial'],$startts,$endts);
-
-$qr="select serial,sum(prod) from ".tp."readings where serial=? and ts between ? and  ? ";
+$qr="select COALESCE(sum(prod),0) as s from ".tp."readings where serial=? and ts between ? and  ? ";
 // Oddly, summing on prod from XXirrad table does not give the good results
 $select_messages = $db->prepare($qr);
-$select_messages->setFetchMode(PDO::FETCH_KEY_PAIR);
+$select_messages->setFetchMode(PDO::FETCH_ASSOC);
 $select_messages->execute($reqArgs);
 $readings =$select_messages->fetchAll();
+$retreadings[$serial]=$readings[0][s];
 header('Content-Type: application/json');
-echo json_encode($readings);
+echo json_encode($retreadings);
 
 
 ?>
