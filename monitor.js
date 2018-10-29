@@ -67,7 +67,7 @@ function retrieveMeters(listLoc,dataLoc) {
                 meterNames[result[i].serial]=result[i].name;
                 peakPower[result[i].serial]=result[i].peak_power;
                 if (result[i].lastts>lastTsInData) lastTsInData=result[i].lastts;
-                setTimeout(retrieveData, i*20,result[i],dataLoc,destCtx,null);  // setTimeout paces the calls to the web API
+                setTimeout(retrieveData, i*1,result[i],dataLoc,destCtx,null);  // setTimeout paces the calls to the web API, here each ms
             }
         }
         //Adjust the enddate according to lastTs from the meters

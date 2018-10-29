@@ -3,6 +3,9 @@ require_once "constants.php";
 require_once "ids.php"; // Contains the identifier + Password to connect to RTone web API
 require_once "common.php"; 
 
+ini_set("zlib.output_compression", "On");
+ini_set("zlib.output_compression_level", "-1");
+
 $db = connect_to_db();
 
 
