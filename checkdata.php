@@ -9,11 +9,16 @@ $db = connect_to_db();
 # Parameters for alarm
 $maxNbHoursSinceUpdate=24;
 $nb_hours_prod=18;
-$thresh_null_readings=9; #1 unit = 10mn, 9 -> 1h30'
+$thresh_null_readings=9;
+$nbreadingsperhour=6; #1 unit = 10mn, 9 -> 1h30'
 
 # Needs the define of mailalertsubject mailadmin
 
 date_default_timezone_set("UTC");
+
+function shortnumber($duration){
+  return number_format($duration,1,",",".");
+}
 
 $meters = get_meter_list($db);
 
@@ -55,7 +60,7 @@ if($tsi!=NULL && $tsf!=NULL){
     $select_messages->execute(array($tsi-$m["timeoffset"],$tsf-$m["timeoffset"],$m["serial"]));
     $nb_zero=($select_messages->fetchAll())[0][1];
     if($nb_zero>$thresh_null_readings){
-      array_push($zero_prod_meters,$m["name"]." : ".number_format($nb_zero/6,2,",",".")." heures.");
+      array_push($zero_prod_meters,$m["name"]." : ".shortnumber($nb_zero/$nbreadingsperhour)." heures."."(".shortnumber($nb_zero*3600*100/$nbreadingsperhour/($tsf-$tsi))."% de la période)");
     }
   }
   if(count($zero_prod_meters)){
