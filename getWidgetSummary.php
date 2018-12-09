@@ -14,6 +14,10 @@ $serialselect="";
 if (isset($_GET['serial'])){
   $theserial=$_GET['serial'];
   $serialselect=" and serial=$theserial";
+  $sum=['msg'=>"de cette station"];
+}
+else{
+  $sum=['msg'=>"de Gr&eacute;si21"];
 }
 
 $dateYr=date("Y");
@@ -22,10 +26,8 @@ $thisMonth=strtotime("$dateYr-$dateMonth-01T00:00:00");
 
 $thisYear=strtotime("$dateYr-01-01"."T00:00:00");
 
-$sum=[];
 foreach(array('month'=>$thisMonth,'year'=>$thisYear,'total'=>0) as $what=>$startts){
   $qr="select '$what',sum(prod)/1000 from ".tp."readings where ts >  $startts".$serialselect;
-  echo($qr);
   $select_messages = $db->prepare($qr);
   $select_messages->setFetchMode(PDO::FETCH_KEY_PAIR);
   $select_messages->execute($reqArgs);

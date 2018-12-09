@@ -1,18 +1,13 @@
 const prodURL="http://gresi21.fr/monitor/getWidgetSummary.php";
 
-const starttable="<SPAN style='display:inline-table'><TABLE style='width:22em; border: 2px double black; border-collapse: collapse;font-family: Sans-Serif;'><TR>";
+const starttable="<SPAN style='display:inline-table'><TABLE style='width:22em; border: 0px; border-collapse: collapse;font-family: Sans-Serif; margin: 0.1em;'>";
 const endtable="</TR></TABLE></SPAN>";
 
 const timespan={month:"ce mois ci",year:"cette année",total:"totale"};
 
 let allcontent;
 console.log(document.getElementById("serialNumber"));
-if(document.getElementById("serialNumber")!=null){
-  allcontent="<SPAN style='font-family: Sans-Serif'>Production de cette station et de Gr&eacute;si21</SPAN><BR>";
-}
-else{
-  allcontent="<SPAN style='font-family: Sans-Serif'>Production de Gr&eacute;si21</SPAN><BR>";
-}
+allcontent="<SPAN style='font-family: Sans-Serif'>Production...</SPAN><BR>";
 
 function addCommas(nStr) {
     nStr += '';
@@ -24,14 +19,14 @@ function addCommas(nStr) {
 }
 
 function printProd(res){
-  let content=starttable;
+  let content=starttable+"<TR><TD style='border: 0px; padding:0em;'>"+res['msg']+"</TD></TR><TR>";
   console.log(res);
   for (let p in res){
+    if(!p.localeCompare("msg")) continue;
     let prod=Math.round(res[p]);
     content+="<TD style='border: 1px solid black; padding:0.5em;'> "+timespan[p]+":<BR> <SPAN style='float:right'><B>"+addCommas(prod.toFixed(0))+"</B> kWh</TD>";
   }
   content+=endtable;
-  console.log(content);
   allcontent+=content;
   document.getElementById("prodwidget").innerHTML=allcontent; 
 }
