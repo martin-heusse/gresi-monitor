@@ -62,7 +62,7 @@ if($tsi!=NULL && $tsf!=NULL){
     $cur_lastts=$dat[0][0];
     $nb_zero=$dat[0][1];
     if($nb_zero>$thresh_null_readings){
-      array_push($zero_prod_meters,$m["name"]." : ".shortnumber($nb_zero/$nbreadingsperhour)." heures."."(".shortnumber($nb_zero*3600/$nbreadingsperhour/($cur_lastts-$tsi))*100 ."% de la période)");
+      array_push($zero_prod_meters,$m["name"]." : ".shortnumber($nb_zero/$nbreadingsperhour)." heures."."(".shortnumber($nb_zero*3600/$nbreadingsperhour/($cur_lastts-$tsi)*100.0) ."% de la période)");
     }
   }
   if(count($zero_prod_meters)){
