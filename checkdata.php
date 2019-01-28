@@ -51,18 +51,17 @@ $tsi=$daylight["tsi"]; $tsf=$daylight["tsf"];
 
 if($tsi!=NULL && $tsf!=NULL){
   #Find how many zero production ts we have during that time
-  $qr="select max(ts+?),count(distinct ts) as nbval  from ".tp."readings where prod=0 and ts>? and ts<? and serial=?";
+  $qr="select serial,count(distinct ts) as nbval  from ".tp."readings where prod=0 and ts>? and ts<? and serial=?";
   $select_messages->setFetchMode(PDO::FETCH_KEY_PAIR);
   $select_messages = $db->prepare($qr);
   $zero_prod_meters=[];
   foreach($meters as $m){
     # time offset in the _other_ direction !!
-    $select_messages->execute(array($m["timeoffset"],$tsi-$m["timeoffset"],$tsf-$m["timeoffset"],$m["serial"]));
+    $select_messages->execute(array($tsi-$m["timeoffset"],$tsf-$m["timeoffset"],$m["serial"]));
     $dat=$select_messages->fetchAll();
-    $cur_lastts=$dat[0][0];
     $nb_zero=$dat[0][1];
     if($nb_zero>$thresh_null_readings){
-      array_push($zero_prod_meters,$m["name"]." : ".shortnumber($nb_zero/$nbreadingsperhour)." heures."."(".shortnumber($nb_zero*3600/$nbreadingsperhour/($cur_lastts-$tsi)*100.0) ."% de la période)");
+      array_push($zero_prod_meters,$m["name"]." : ".shortnumber($nb_zero/$nbreadingsperhour)." heures."."(".shortnumber($nb_zero*3600/$nbreadingsperhour/($m["lastts"]-$tsi+$m["timeoffset"])*100.0) ."% de la période)");
     }
   }
   if(count($zero_prod_meters)){
