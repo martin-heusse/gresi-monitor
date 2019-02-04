@@ -61,12 +61,12 @@ if($tsi!=NULL && $tsf!=NULL){
     $dat=$select_messages->fetchAll();
     $nb_zero=$dat[0][1];
     if($nb_zero>$thresh_null_readings){
-      echo $nb_zero." ".(min($m["lastts"],$tsf-$m["timeoffset"])-($tsi-$m["timeoffset"]))."\n";
-      array_push($zero_prod_meters,$m["name"]." : ".shortnumber($nb_zero/$nbreadingsperhour)." heures."."(".shortnumber(($nb_zero+1)*3600/$nbreadingsperhour/(min($m["lastts"],$tsf-$m["timeoffset"])-($tsi-$m["timeoffset"]))*100.0) ."% de la période)");
+//       echo $nb_zero." ".(min($m["lastts"],$tsf-$m["timeoffset"])-($tsi-$m["timeoffset"]))."\n";
+      array_push($zero_prod_meters,$m["name"]." : ".shortnumber($nb_zero/$nbreadingsperhour)." heures."."(".shortnumber(($nb_zero)*3600/$nbreadingsperhour/(min($m["lastts"],$tsf-$m["timeoffset"])-($tsi-$m["timeoffset"]))*100.0) ."% de la période)");
     }
   }
   if(count($zero_prod_meters)){
-    $update_pb_str="Alerte production nulle : ".implode(', ',$zero_prod_meters )."\n\n". $update_pb_str;
+    $update_pb_str="Alerte production nulle : \n  ".implode(PHP_EOL."  ",$zero_prod_meters )."\n\n". $update_pb_str;
   }
 }
 if(strlen($update_pb_str)){
