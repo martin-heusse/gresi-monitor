@@ -209,6 +209,7 @@ function dataRetrieved(statusChar,destCtx,zc){
         document.getElementById('progressEnd').innerHTML="";
         $("#zoomSelect").prop('disabled', false);
         if(zc==null){
+            trimData();
             mc.mainChart=doPlot(destCtx,1); 
             if(document.getElementById("postzoommeter").value.length>0){
                 zoomSelected();
@@ -221,6 +222,44 @@ function dataRetrieved(statusChar,destCtx,zc){
         }
     }
 
+}
+
+function dataIndexLeft(dat){
+  var i;
+  for (i=0;i<dat.length;i++){
+    if(dat[i]>=0.001){
+      return i;
+    }
+  }
+  return dat.length;
+}
+function dataIndexRight(dat){
+  var i;
+  for (i=dat.length-1;i>=0;i--){
+    if(dat[i]>=0.001){
+      return i;
+    }
+  }
+  return 0;
+}
+
+function trimData(){
+  // Find index of first non null data, last non null data
+  let indexBoundaries=myData.reduce(function(cur,b){
+      leftmin= Math.min(cur.lm,dataIndexLeft(b.data));
+      rightmax= Math.max(cur.rm,dataIndexRight(b.data));
+      return {lm:leftmin,rm:rightmax};
+  },{lm:myLabels.length,rm:0});
+  //adjust
+  console.log(indexBoundaries)
+  if(indexBoundaries.lm>1) --indexBoundaries.lm;
+  if(indexBoundaries.rm<myLabels.length-3) indexBoundaries.rm=indexBoundaries.rm+2;
+  console.log(indexBoundaries)
+  // trim labels, data
+  myLabels.splice(0,indexBoundaries.lm);
+  myLabels.splice(indexBoundaries.rm-indexBoundaries.lm,myLabels.length);
+  myData.forEach(function(item){item.data.splice(0,indexBoundaries.lm);
+                                item.data.splice(indexBoundaries.rm-indexBoundaries.lm,item.length)});
 }
 
 function doPlot(destCtx,isMainPlot){
