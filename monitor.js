@@ -225,7 +225,6 @@ function dataRetrieved(statusChar,destCtx,zc){
 
 function doPlot(destCtx,isMainPlot){
     if (myData.length==0){
-        console
         let chart = new Chart(destCtx, {
             options: {
                 title: {
