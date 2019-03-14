@@ -60,13 +60,14 @@ function retrieveMeters(listLoc,dataLoc) {
         document.getElementById('progressEnd').innerHTML=">";
 
         let destCtx=document.getElementById("globalChart").getContext('2d');
-
+        let lasttsCorrected = 0;
         for (i=0;i<result.length;i++){
             if(metersToShow[0].length==0 || metersToShow.findIndex(function(cur){return cur.localeCompare(result[i].name)==0})>=0){
                 nbMeters++;
                 meterNames[result[i].serial]=result[i].name;
                 peakPower[result[i].serial]=result[i].peak_power;
-                if (result[i].lastts>lastTsInData) lastTsInData=result[i].lastts;
+                lasttsCorrected= parseInt(result[i].lastts)+ parseInt(result[i].timeoffset);
+                if (lasttsCorrected>lastTsInData) lastTsInData=lasttsCorrected;
                 setTimeout(retrieveData, i*1,result[i],dataLoc,destCtx,null);  // setTimeout paces the calls to the web API, here each ms
             }
         }
@@ -155,11 +156,13 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             // Process the data that was just fetched
             let ithMeterData=[];
             let colIndex=colIndexFor(result[0].serial.toString());
-            myLabels=[];
+            if(myLabels.length<result.length) // only override labels if more data in this set
+                myLabels=[];
             if(zc || !$("#radio1h").prop( "checked" ))
               result=adjustTime(result);
             result.forEach(function(item) {
-                myLabels.push(convertTS(item.ts)); // overriding previous ones, but it's always the same thing, as ensured by the php call
+                if(myLabels.length<result.length)
+                    myLabels.push(convertTS(item.ts)); // overriding previous ones, if there is more data
                 wToWc=(!zc)?1/peakPower[result[0].serial]:1; // W / Wc in main  graph, kW in the other
                 if(item.prod>=0)ithMeterData.push(Math.round(item.prod*whToW*wToWc)/1000);
                 else ithMeterData.push(null);
@@ -252,8 +255,9 @@ function trimData(){
   },{lm:myLabels.length,rm:0});
   //adjust
   console.log(indexBoundaries)
+  console.log(myLabels.length)
   if(indexBoundaries.lm>1) --indexBoundaries.lm;
-  if(indexBoundaries.rm<myLabels.length-3) indexBoundaries.rm=indexBoundaries.rm+2;
+  if(indexBoundaries.rm<=myLabels.length-3) indexBoundaries.rm=indexBoundaries.rm+2;
   console.log(indexBoundaries)
   // trim labels, data
   myLabels.splice(0,indexBoundaries.lm);
