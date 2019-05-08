@@ -62,7 +62,8 @@ function retrieveMeters(listLoc,dataLoc) {
         let destCtx=document.getElementById("globalChart").getContext('2d');
         let lasttsCorrected = 0;
         for (i=0;i<result.length;i++){
-            if(metersToShow[0].length==0 || metersToShow.findIndex(function(cur){return cur.localeCompare(result[i].name)==0})>=0){
+            // Select the meters with a name matching the requested ones (or all meters if empty list)
+            if(metersToShow[0].length==0 || metersToShow.findIndex(function(cur){return result[i].name.search(cur)>=0})>=0){
                 nbMeters++;
                 meterNames[result[i].serial]=result[i].name;
                 peakPower[result[i].serial]=result[i].peak_power;
