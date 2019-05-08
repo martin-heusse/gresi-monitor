@@ -20,7 +20,7 @@ function shortnumber($duration){
   return number_format($duration,1,",",".");
 }
 
-$meters = get_meter_list($db);
+$meters = get_meter_list_check($db);
 
 $now=time(); # Current unix timestamp
 
