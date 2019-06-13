@@ -7,12 +7,19 @@ require_once "common.php";
 $MAX_YEARS=10;
 
 function getMonthProd($db,$m,$from,$to){
-  $qr="select  sum(prod)/1000 as tot from ".tp."readings where ts between $from and $to and serial=".$m["serial"];
+  $qr="select  sum(prod)/1000 as tot from ".tp."readings r,".tp."disabled d where r.ts between $from and $to and r.serial=".$m["serial"];
   $select_messages = $db->prepare($qr);
   $select_messages->setFetchMode(PDO::FETCH_ASSOC);
   $select_messages->execute();
   $prod=$select_messages->fetchAll()[0];
-  return($prod["tot"]);
+  $total=$prod["tot"];
+  $qr="select  sum(prod)/1000 as tot from ".tp."readings r,".tp."disabled d where r.ts between $from and $to and  (r.serial=d.replacedby and d.serial=".$m["serial"].")";
+  $select_messages = $db->prepare($qr);
+  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+  $select_messages->execute();
+  $prod=$select_messages->fetchAll()[0];
+  $total+=$prod["tot"];
+  return($total);
 }
 
 $db = connect_to_db();
@@ -24,7 +31,7 @@ pageHeader(nameAppli()." — Productions annuelles");
 <?php
 echo "<DIV class='sc'><TABLE CLASS='prod'>";
 
-$meters = get_meter_list($db);
+$meters = get_meter_list_orig($db);
 
 $grandTotal=0;
 
