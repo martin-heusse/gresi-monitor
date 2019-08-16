@@ -12,14 +12,9 @@ date_default_timezone_set("UTC");
 
 function compute_hash($reqdate){
 // Build API key from login, password, date
-  $string = rbusername.rbpass.$reqdate;
-
-  $hash = sha1($string, true);
-  $hash = base64_encode($hash);
-  $hash=preg_replace('/\n/', '', $hash);
-  $hash=preg_replace('/=/', '', $hash);
-  $hash=preg_replace('/\+/', '-', $hash);
-  $hash=preg_replace('/\//', '_', $hash);
+  $salted_password = rbpass . '{' . rbusername . '}';
+  $hashed_password = strtolower(hash('sha512', $salted_password, false));
+  $hash = strtolower(sha1($hashed_password . $reqdate, false)); 
   return $hash;
 }
 
