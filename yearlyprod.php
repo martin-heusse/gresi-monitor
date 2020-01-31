@@ -6,7 +6,7 @@ require_once "common.php";
 
 $MAX_YEARS=10;
 
-function getMonthProd($db,$m,$from,$to){
+function getMeterProd($db,$m,$from,$to){
   $qr="select  sum(prod)/1000 as tot from ".tp."readings r,".tp."disabled d where r.ts between $from and $to and r.serial=".$m["serial"];
   $select_messages = $db->prepare($qr);
   $select_messages->setFetchMode(PDO::FETCH_ASSOC);
@@ -55,7 +55,7 @@ foreach($meters as $m){
   echo "<TD> $d0/$m0/$y0 </TD>";
   for ($i=0;$i<$MAX_YEARS;$i++){
     $to=strtotime("$y1-$m0-$d0");
-    $curprd=getMonthProd($db,$m,$from,$to);
+    $curprd=getMeterProd($db,$m,$from,$to);
     echo "<TD class=prod$i align='right'> ".round($curprd,1)."    </TD>";
     $grandTotal+=$curprd;
     $from=$to;$y1=$y1+1;
@@ -96,11 +96,11 @@ foreach($meters as $m){
   echo "<TD> $d0/$m0/$y0 </TD>";
   for ($i=0;$i<$MAX_YEARS;$i++){
     $to=strtotime("$y1-01-01");
-    $curprd=getMonthProd($db,$m,$from,$to);
+    $curprd=getMeterProd($db,$m,$from,$to);
     echo "<TD align='right'> ".round($curprd,1)."    </TD>";
     $from1=$to;
     $to=strtotime("$y1-$m0-$d0");
-    $curprd=getMonthProd($db,$m,$from1,$to);
+    $curprd=getMeterProd($db,$m,$from1,$to);
     echo "<TD align='right'> ".round($curprd,1)."    </TD>";
     $from=$to;$y1=$y1+1;
   }
