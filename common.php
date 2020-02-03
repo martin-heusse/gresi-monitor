@@ -22,6 +22,7 @@ function pageHeader($pageDesc){
       TABLE.dm{border-collapse: collapse;}
       TABLE.prod{border: 2px solid black; border-collapse: collapse;}
       TD{border: 1px solid black; padding-left: 5px; padding-right: 3px; padding-top: 3px; padding-bottom: 2px}
+      TD.totProd{font-weight: bold;}
       H1{font-family: Sans-Serif; text-align:center; font-size: 1.5em; margin: .75em 0}
      </STYLE>
 

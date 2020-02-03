@@ -12,8 +12,14 @@ function computeSum(colNum){
   return (Math.round(sum*10)/10).toFixed(1);
 }
 
+var formating = {
+  style: "decimal"
+}
+
 $(document).ready(function(){
 $('.totProd').each(function() {
-    this.innerHTML=computeSum(this.id);
+    var n=new Number(computeSum(this.id));
+    s=new String(n.toLocaleString("fr-FR",formating))
+    this.innerHTML=s.split(/\s/g).join("&nbsp;");
 });
 });
