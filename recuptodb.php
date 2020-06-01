@@ -18,9 +18,16 @@ function compute_hash($reqdate){
   return $hash;
 }
 
+function file_get_contents_noauth($s){
+  $arrContextOptions=array(
+      "ssl"=>array(
+          "verify_peer"=>false,
+          "verify_peer_name"=>false));
+  return file_get_contents($s, false, stream_context_create($arrContextOptions));
 
+}
 
-$meterList = json_decode(file_get_contents(build_qr_list())); // returns an object with a single property called "list"
+$meterList = json_decode(file_get_contents_noauth(build_qr_list())); // returns an object with a single property called "list"
 pace();
 
 // fixme remove this !!
@@ -69,7 +76,7 @@ foreach ($meterList->list as $serial){
 }
 
 function get_dev_info($sn=null){
-  $meterInfo=json_decode(file_get_contents(build_qr_info($sn)));
+  $meterInfo=json_decode(file_get_contents_noauth(build_qr_info($sn)));
   pace();
   return $meterInfo;
 }
@@ -155,7 +162,7 @@ function update_db_init_meter($serial,$meterInfo,$db){
 
 function retrieve_and_insert( $serial,$startts,$endts,$db){
   // First retrieve + insert for 10mn steps
-  $r=json_decode(file_get_contents(build_qr_10mn($serial,$startts,$endts)));
+  $r=json_decode(file_get_contents_noauth(build_qr_10mn($serial,$startts,$endts)));
   echo build_qr_10mn($serial,$startts,$endts);
   pace();
   $qr = "insert into ".tp."readings values ($serial , ?, ?)";//serial , ts , prod10 
@@ -170,7 +177,7 @@ function retrieve_and_insert( $serial,$startts,$endts,$db){
   
   // Then for 1h
   
-  $r=json_decode(file_get_contents(build_qr_1h($serial,$startts,$endts)));
+  $r=json_decode(file_get_contents_noauth(build_qr_1h($serial,$startts,$endts)));
   echo build_qr_1h($serial,$startts,$endts);
   pace();
   $qr = "insert into ".tp."irrad values ($serial , ?, ?, ?)";//serial , ts , prod1h, irrad
@@ -184,7 +191,7 @@ function retrieve_and_insert( $serial,$startts,$endts,$db){
 }
 
 function fix_irrad($serial,$startts,$endts,$db){
-  $r=json_decode(file_get_contents(build_qr_1h($serial,$startts,$endts)));
+  $r=json_decode(file_get_contents_noauth(build_qr_1h($serial,$startts,$endts)));
   pace();
   $qr = "update ".tp."irrad set prod=?, irrad=? where serial=$serial and ts=? and irrad=0.0";//serial , ts , prod1h, irrad
   $insert_stmt = $db->prepare($qr);
