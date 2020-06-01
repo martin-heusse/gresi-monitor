@@ -41,45 +41,8 @@ pageHeader(nameAppli()." — Productions annuelles");
 
 $meters = get_meter_list_orig($db);
 
-$grandTotal=0;
 
-tableHead();
-
-for ($i=0;$i<$MAX_YEARS;$i++){
-  echo "<TD>". ($i + 1) ."</TD>";
-}
-echo "</TR>";
-
-$tab=t1;
-foreach($meters as $m){
-//ex : serial] => 210000217 [name] => name [localization] => [fisrtts] => 1512994200 [lastts] => 1518526200 [peak_power] => 8.1 [timeoffset] => 1200 
-  echo "<TR>";
-  echo "<TD>".$m["name"]."</TD>";
-  $y0=date("Y",$m["fisrtts"]);
-  $m0=date("m",$m["fisrtts"]);
-  $d0=date("d",$m["fisrtts"]);
-  $from=$m["fisrtts"];
-  echo "<TD> $d0/$m0/$y0 </TD>";
-  $y1=$y0+1;
-  for ($i=0;$i<$MAX_YEARS;$i++){
-    $to=strtotime("$y1-$m0-$d0");
-    $curprd=getMeterProd($db,$m,$from,$to);
-    echo "<TD class=prod$i$tab align='right'> ".round($curprd,1)."    </TD>";
-    $grandTotal+=$curprd;
-    $from=$to;$y1=$y1+1;
-  }
-  echo "</TR>\n";
-}
-echo "<TR><B><TD></TD><TD></TD>";;
-for ($i=0;$i<$MAX_YEARS;$i++){
-  echo"<TD id=$i$tab class=totProd align='right'></TD>";
-}
-echo "</B></TR>\n";
-
-tableFoot();
-echo "<BR/><B>Grand Total: ".round($grandTotal)." kWh</B>";
-
-// Maintenant, par demi-année
+// Par demi-année
 echo "<h2>Totaux par demi-année</h2>";
 
 // Année courante
@@ -129,12 +92,6 @@ foreach($meters as $m){
   echo "</TR>\n";
 }
 
-echo "<TR><B><TD></TD><TD></TD>";;
-for ($i=0;$i<$nbYears*2;$i++){
-  echo"<TD id=$i$tab class=totProd align='right'></TD>";
-}
-echo "</TR>";
-
 tableFoot();
 
 echo "<h2>Totaux par année civile</h2>";
@@ -168,6 +125,46 @@ for ($i=0;$i<$nbYears;$i++){
   echo"<TD id=$i$tab class=totProd align='right'></TD>";
 }
 echo "</TR>";
+tableFoot();
+
+
+
+echo "<h2>Totaux par année d'exploitation</h2>";
+
+$grandTotal=0;
+
+tableHead();
+
+for ($i=0;$i<$MAX_YEARS;$i++){
+  echo "<TD>". ($i + 1) ."</TD>";
+}
+echo "</TR>";
+
+$tab=t1;
+foreach($meters as $m){
+//ex : serial] => 210000217 [name] => name [localization] => [fisrtts] => 1512994200 [lastts] => 1518526200 [peak_power] => 8.1 [timeoffset] => 1200 
+  echo "<TR>";
+  echo "<TD>".$m["name"]."</TD>";
+  $y0=date("Y",$m["fisrtts"]);
+  $m0=date("m",$m["fisrtts"]);
+  $d0=date("d",$m["fisrtts"]);
+  $from=$m["fisrtts"];
+  echo "<TD> $d0/$m0/$y0 </TD>";
+  $y1=$y0+1;
+  for ($i=0;$i<$MAX_YEARS;$i++){
+    $to=strtotime("$y1-$m0-$d0");
+    $curprd=getMeterProd($db,$m,$from,$to);
+    echo "<TD class=prod$i$tab align='right'> ".round($curprd,1)."    </TD>";
+    $grandTotal+=$curprd;
+    $from=$to;$y1=$y1+1;
+  }
+  echo "</TR>\n";
+}
+
+tableFoot();
+echo "<BR/><DIV class='sc'><B>Grand Total: ".number_format(round($grandTotal), 2, ',', ' ')." kWh</B></DIV>";
 
 pageFoot();
+
+
 ?>
