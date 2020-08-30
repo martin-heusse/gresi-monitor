@@ -7,7 +7,7 @@ require_once "common.php";
 $MAX_YEARS=10;
 
 function getMeterProd($db,$m,$from,$to){
-  $qr="select  sum(prod)/1000 as tot from ".tp."readings r,".tp."disabled d where r.ts between $from and $to and r.serial=".$m["serial"];
+  $qr="select  sum(prod)/1000 as tot from ".tp."readings r where r.ts between $from and $to and r.serial=".$m["serial"];
   $select_messages = $db->prepare($qr);
   $select_messages->setFetchMode(PDO::FETCH_ASSOC);
   $select_messages->execute();
