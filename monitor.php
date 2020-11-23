@@ -94,7 +94,7 @@ if (isset($_POST['dataspan'])){
 </form>
 </div>
 
-<div id="status" class="sc ib" style="display:none;"><span id="progress"></span><span id="progressEnd"></span></div>
+<div id="status" class="sc ib"><!-- style="display:none;" --><span id="progress"></span><span id="progressEnd"></span></div>
 <div id="globalChartDiv" class="chartClass" style="height: 70vh">
   <canvas id="globalChart" ></canvas>
 </div>

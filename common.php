@@ -7,6 +7,7 @@ function pageHeader($pageDesc){
 	<head>
 		<meta http-equiv="content-type" content="text/html;charset=utf-8" />
 		<meta http-equiv="Content-Language" content="fr" />
+		<meta http-equiv="refresh" content="600">
 		<title>'
 	. $pageDesc .'</title>
 
