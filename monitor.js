@@ -195,7 +195,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             if(zc)
                 myData.push(newData);
             else
-                myData[colIndex]=newData;
+                myData.push(newData);
         }
         nbMetersOK++;
         dataRetrieved("+",destCtx,zc);
@@ -206,11 +206,14 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     });
 }
 
+function orderDataEntries(a,b){return (colIndexFor(a.label)>colIndexFor(b.label));}
+
 function dataRetrieved(statusChar,destCtx,zc){
     nbMeterDone++;
     document.getElementById('progress').innerHTML+=statusChar;
     // Once all the data is in myData array, plot it
     if(nbMeterDone==nbMeters){
+        myData.sort(orderDataEntries);
         document.getElementById('progress').innerHTML=nbMetersOK+" compteur(s) récupéré(s) !";
         document.getElementById('progressEnd').innerHTML="";
         $("#zoomSelect").prop('disabled', false);
