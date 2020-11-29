@@ -132,6 +132,7 @@ function colIndexFor(serialString){
 
 function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     let serialNum=serialInfo.serial;
+    let family=serialInfo.family;
     let whToW=1; // This is for Wh to W conversion when step is 1h...
 //http://localhost/~heusse/Monitor/get1h.php?serial=216670215&start=1512814200&end=1512823800
     let borderDash=[];
@@ -150,7 +151,8 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
           whToW=6;
         }
     }
-    let myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
+    let myUrl=dataLoc+"?family="+family+"&serial="+serialNum+"&start="
+              +(ts-nbDays*24*3600)+"&end="+ts;
     console.log(myUrl);
     $.getJSON(myUrl, function(result){
         if(result.length>0){

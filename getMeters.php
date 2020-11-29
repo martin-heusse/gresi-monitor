@@ -7,6 +7,7 @@ $db = connect_to_db();
 
 $meters = get_meter_list($db);
 header('Content-Type: application/json');
+// fields: family, serial, name, fisrtts ,lastts, peak_power,timeoffset
 echo json_encode($meters);
 
 ?>

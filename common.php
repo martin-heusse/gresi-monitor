@@ -70,7 +70,7 @@ function date_to_str($time){ // Reciprocal of builtin strtotime()
 
 function get_meter_list($db)
 {
-  $qr="select * from ".tp."meters order by name";
+  $qr="select 'rbee' as family, serial, name, fisrtts ,lastts, peak_power,timeoffset from ".tp."meters  union select 'tic' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticmeters";
   $select_messages = $db->prepare($qr);
   $select_messages->setFetchMode(PDO::FETCH_ASSOC);
   $select_messages->execute();
