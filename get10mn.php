@@ -57,7 +57,7 @@ elseif (strcmp($_GET['family'],"tic")==0){
   $qr="SELECT deveui as serial, ts, eait
   FROM ".tp."ticreadings
   WHERE deveui=?
-  AND ts BETWEEN ? and ?";
+  AND ts BETWEEN ? and ? order by ts";
   $reqArgs=array($_GET['serial'],$start,$end);
   $select_messages = $db->prepare($qr);
   $select_messages->setFetchMode(PDO::FETCH_ASSOC);
@@ -75,13 +75,16 @@ elseif (strcmp($_GET['family'],"tic")==0){
   $i=1;
   $prev=$readings[$i-1];
   $next=$readings[$i];
-  for ($t=$rounded_start;$t<$end;$t+=60*10){
+  $last_ts=$readings[count($readings)-1]['ts'];
+//   print((($last_ts-$rounded_start)/600)."\n");
+  for ($t=$rounded_start;$t<$last_ts ;$t+=60*10){
     if($t>$next['ts']&&$i<count($readings)-2) $prev=$readings[$i];
     while($t>$next['ts']) {
-      if($i>=count($readings)-2) break;
+      if($i>count($readings)-2) break;
       $i+=1;$next=$readings[$i];
     }
     $pow=($next['eait']-$prev['eait'])/($next['ts']-$prev['ts']);
+//     print((($t-$rounded_start)/600)." ".(($prev['ts']-$rounded_start)/600)." ".(($next['ts']-$rounded_start)/600)."\n" );
     $cur_prod=array('serial'=>$_GET['serial'],'ts'=>$t,'prod'=>$pow * 60*10);
     array_push($prod,$cur_prod);
   }
