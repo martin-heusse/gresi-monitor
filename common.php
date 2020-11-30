@@ -78,7 +78,7 @@ function get_meter_list($db)
 }
 function get_meter_list_orig($db)
 {
-  $qr="select * from ".tp."meters where serial not in (select replacedby from ".tp."disabled) order by name";
+  $qr="select * from ".tp."meters where serial not in (select replacedby from ".tp."disabled where replacedby is not null) order by name";
   $select_messages = $db->prepare($qr);
   $select_messages->setFetchMode(PDO::FETCH_ASSOC);
   $select_messages->execute();
