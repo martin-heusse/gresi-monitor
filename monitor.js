@@ -3,7 +3,7 @@ let myLabels=[];
 let myData=[];
 let zc={zoomChart:null}; // holds the pointer to the zoom chart object, to destroy it when needed
 let mc={mainChart:null}; // holds the pointer to the main chart object
-let meterNames={}; // serial -> name
+let meterNames={}; // family_serial -> name (see functions makeMeterKey(), splitMeterKey())
 let peakPower={}; // serial -> peak_power
 let endDate=null;
 let nbProdDone=0;nbProd=0;totalProdMonth=0
@@ -38,6 +38,9 @@ function convertTS(ts){
 //     return date.toLocaleString();
 }
 
+function makeMeterKey(family,serial){return family.toString()+"_"+serial.toString()}
+function splitMeterKey(key){return {family:key.split('_')[0],serial:key.split('_')[1]};}
+
 function prepareZoom(listCounters){
     let myOptions="<option></option>";
     let zoomMeterInPost=document.getElementById("postzoommeter").value;
@@ -65,7 +68,7 @@ function retrieveMeters(listLoc,dataLoc) {
             // Select the meters with a name matching the requested ones (or all meters if empty list)
             if(metersToShow[0].length==0 || metersToShow.findIndex(function(cur){return result[i].name.search(cur)>=0})>=0){
                 nbMeters++;
-                meterNames[result[i].serial]=result[i].name;
+                meterNames[makeMeterKey(result[i].family,result[i].serial)]=result[i].name;
                 peakPower[result[i].serial]=result[i].peak_power;
                 lasttsCorrected= parseInt(result[i].lastts)+ parseInt(result[i].timeoffset);
                 if (lasttsCorrected>lastTsInData) lastTsInData=lasttsCorrected;
@@ -158,7 +161,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
         if(result.length>0){
             // Process the data that was just fetched
             let ithMeterData=[];
-            let colIndex=colIndexFor(result[0].serial.toString());
+            let colIndex=colIndexFor(makeMeterKey(family,result[0].serial));
             if(myLabels.length<result.length) // only override labels if more data in this set
                 myLabels=[];
             if(zc || !$("#radio1h").prop( "checked" ))
@@ -182,7 +185,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             else if(max===null){
                 borderDash=[2,4];
             }
-            let newData={label: meterNames[result[0].serial], // ""+resultAdj[0].serial+" "+  
+            let newData={label: meterNames[makeMeterKey(result[0].family,result[0].serial)], // ""+resultAdj[0].serial+" "+  
                 borderColor: `hsl(${Math.round((1+colIndex)/(nbMeters)*360)+45}, 100%,50%)`,
 //                 pointBorderWidth: peakPower[result[0].serial]/12,
 //                 borderWidth:1,
@@ -190,7 +193,9 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
                 borderWidth:peakPower[result[0].serial]/12,
                 borderDash:borderDash,
                 data: ithMeterData,
-                backgroundColor:bkgdCol
+                backgroundColor:bkgdCol,
+                family:result[0].family,
+                serial:result[0].serial
                 };
             if(zc)
                 myData.push(newData);
@@ -206,7 +211,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     });
 }
 
-function orderDataEntries(a,b){return (colIndexFor(a.label)>colIndexFor(b.label));}
+function orderDataEntries(a,b){return (colIndexFor(makeMeterKey(a.family,a.serial))>colIndexFor(makeMeterKey(b.family,b.serial)));}
 
 function dataRetrieved(statusChar,destCtx,zc){
     nbMeterDone++;
@@ -214,6 +219,7 @@ function dataRetrieved(statusChar,destCtx,zc){
     // Once all the data is in myData array, plot it
     if(nbMeterDone==nbMeters){
         myData.sort(orderDataEntries);
+        console.log(myData);
         document.getElementById('progress').innerHTML=nbMetersOK+" compteur(s) récupéré(s) !";
         document.getElementById('progressEnd').innerHTML="";
         $("#zoomSelect").prop('disabled', false);
@@ -313,9 +319,8 @@ function doPlot(destCtx,isMainPlot){
 }
 
 function zoomSelected(){
-    let serialNum=0;
     let destCtx=document.getElementById("zoomChart").getContext('2d');
-    serialNum=document.getElementById("zoomSelect").value;
+    let familySerial=splitMeterKey(document.getElementById("zoomSelect").value);
     serialName=document.getElementById("zoomSelect").name;
     nbMeters=1;nbMeterDone=0;nbMetersOK=0
     myLabels=[];
@@ -324,11 +329,11 @@ function zoomSelected(){
         zc.zoomChart.destroy();
     }
     document.getElementById('progress').innerHTML="Récupération des données";
-    retrieveData({serial:serialNum,name:serialName},document.getElementById("dataUrl10mn").value,destCtx,zc);
+    retrieveData({family:familySerial.family,serial:familySerial.serial,name:serialName},document.getElementById("dataUrl10mn").value,destCtx,zc);
 
     // reduce size of main chart
     gcd=document.getElementById("globalChartDiv");
-    if(serialNum>0){
+    if(familySerial.serial>0){
         gcd.style.height="35vh";
         updateMainChart(8);
 //         window.scrollTo(0,Math.round($("#zoomSelect").offset().top));
@@ -407,7 +412,9 @@ function retrieveIrrad(zc){
 
 function retrieveRef(zc){
     // so what meter are we talking about?
-    serialNum=document.getElementById("zoomSelect").value;
+    let famser=splitMeterKey(document.getElementById("zoomSelect").value);
+    let serialFamily=famser.family;
+    let serialNum=famser.serial;
     if($("#zoomenddate")[0].value.length==0 || serialNum.length==0)
       return;
     // where is the data?
@@ -417,7 +424,7 @@ function retrieveRef(zc){
     let nbDays=zoomNbDays;
     let whToW=6;
 
-    let myUrl=dataLoc+"?serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
+    let myUrl=dataLoc+"?family="+serialFamily+"&serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
     $.getJSON(myUrl, function(result){
             chartData=zc.zoomChart.data;
             console.log("chartdatalenght="+chartData.labels.length)
@@ -444,19 +451,24 @@ function displayMonthly(endDate,meterList){
     prodString = "<B>Productions pour le mois "+ (myDate.getMonth()+1) + "/"+ myDate.getFullYear() +"</B> (kWh)<BR/>";
     prodString +=  '<table class="dm">';
     nbProd=meterList.length;
+    let familySerial={};
     for (i=0;i<nbProd;i++){
-        let myUrl=document.getElementById("dataUrlMonth").value+"?serial="+meterList[i]+"&end="+ts;
-
+        familySerial=splitMeterKey(meterList[i]);
+        let myUrl=document.getElementById("dataUrlMonth").value + "?family=" + familySerial.family + "&serial=" + familySerial.serial +"&end=" +ts;
+        console.log(myUrl);
         $.getJSON(myUrl, function(result){
             for (x in result){ //only one iteration / x is the serial
-                prodArray.push({name:meterNames[x],prod:Math.round(result[x]/1000)});
-                totalProdMonth+=result[x]/1000;
+                if(result[x]>0){
+                  // For now, only works for rbee family !!!
+                  prodArray.push({name:meterNames[makeMeterKey("rbee",x)],prod:Math.round(result[x]/1000)});
+                  totalProdMonth+=result[x]/1000;
+                }
             }
             nbProdDone++;
             if(nbProdDone==nbProd){
                 prodArray.sort(function(a, b){return a.name.localeCompare(b.name);});
                 console.log(prodArray);
-                for (j=0;j<nbProd;j++){
+                for (j=0;j<prodArray.length;j++){
                     prodString+="<TR><TD>";
                     prodString+= " "+ prodArray[j].name + " </TD><TD align='right'> "+ prodArray[j].prod  +"</TD></TR>";
                 }

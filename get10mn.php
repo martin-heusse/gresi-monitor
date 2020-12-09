@@ -34,12 +34,12 @@ if(strcmp($_GET['family'],"rbee")==0){
 
   // Make sure that there is a data (and maybe 0) for any existing ts in the DB within the time span
 
-  $qr="SELECT serial, ts+$offset as ts, prod
+  $qr="SELECT 'rbee' as family, serial, ts+$offset as ts, prod
   FROM ".tp."readings as tr
   WHERE serial=?
   AND tr.ts BETWEEN ? and ?
   UNION
-  SELECT ? as serial, ts+$offset as ts, -1
+  SELECT 'rbee' as family, ? as serial, ts+$offset as ts, -1
   FROM ".tp."readings as tr
   WHERE tr.ts BETWEEN ? AND ?
   AND (tr.ts) NOT IN ( SELECT ts FROM ".tp."readings WHERE serial=?)
@@ -85,7 +85,7 @@ elseif (strcmp($_GET['family'],"tic")==0){
     }
     $pow=($next['eait']-$prev['eait'])/($next['ts']-$prev['ts']);
 //     print((($t-$rounded_start)/600)." ".(($prev['ts']-$rounded_start)/600)." ".(($next['ts']-$rounded_start)/600)."\n" );
-    $cur_prod=array('serial'=>$_GET['serial'],'ts'=>$t,'prod'=>$pow * 60*10);
+    $cur_prod=array('family'=>"tic",'serial'=>$_GET['serial'],'ts'=>$t,'prod'=>$pow * 60*10);
     array_push($prod,$cur_prod);
   }
   
