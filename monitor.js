@@ -185,6 +185,9 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             else if(max===null){
                 borderDash=[2,4];
             }
+            if (typeof result[0].family == 'undefined')
+              result[0].family="";
+
             let newData={label: meterNames[makeMeterKey(result[0].family,result[0].serial)], // ""+resultAdj[0].serial+" "+  
                 borderColor: `hsl(${Math.round((1+colIndex)/(nbMeters)*360)+45}, 100%,50%)`,
 //                 pointBorderWidth: peakPower[result[0].serial]/12,
