@@ -71,25 +71,40 @@ elseif (strcmp($_GET['family'],"tic")==0){
   $rounded_start = $rounded_start+60*($mn-$mn%10);
    
   if(count($readings)<2) exit ;
+
+  header('Content-Type: application/json');
+
+
+  // Build an array of power
+  $pow=array();
+  for($i=1;$i<count($readings);$i++){
+    if($readings[$i]['ts']-$readings[$i-1]['ts']==0) continue;// Ya never know
+    $p=($readings[$i]['eait']-$readings[$i-1]['eait'])/($readings[$i]['ts']-$readings[$i-1]['ts']);
+    $t=($readings[$i]['ts']+$readings[$i-1]['ts'])/2;
+    $cur_pow=array('ts'=>$t,'pow'=>$p);
+    array_push($pow,$cur_pow);
+  }
+//   echo json_encode($pow);
   
-  $i=1;
-  $prev=$readings[$i-1];
-  $next=$readings[$i];
+  if(count($pow)<2) exit ;
   $last_ts=$readings[count($readings)-1]['ts'];
 //   print((($last_ts-$rounded_start)/600)."\n");
+  $prev_prod=$pow[0]['pow'];
   for ($t=$rounded_start;$t<$last_ts ;$t+=60*10){
-    if($t>$next['ts']&&$i<count($readings)-2) $prev=$readings[$i];
-    while($t>$next['ts']) {
-      if($i>count($readings)-2) break;
-      $i+=1;$next=$readings[$i];
+    $p_sum=0 ;$nb=0;
+    for($i=0;$i<count($pow);$i++){
+//       echo $pow[$i]['ts']-$rounded_start; echo "  "; echo $t-$rounded_start; echo "<BR>";
+      if($pow[$i]['ts']>=$t-60*5 && $pow[$i]['ts']<$t+60*5){
+        $p_sum+=$pow[$i]['pow'];$nb++;
+      }
+      if($pow[$i]['ts']>=$t+60*5) break;
     }
-    $pow=($next['eait']-$prev['eait'])/($next['ts']-$prev['ts']);
-//     print((($t-$rounded_start)/600)." ".(($prev['ts']-$rounded_start)/600)." ".(($next['ts']-$rounded_start)/600)."\n" );
-    $cur_prod=array('family'=>"tic",'serial'=>$_GET['serial'],'ts'=>$t,'prod'=>$pow * 60*10);
+    if($nb>0){$prev_prod=$p_sum/$nb;}
+    $cur_prod=array('family'=>"tic",'serial'=>$_GET['serial'],'ts'=>$t,'prod'=>$prev_prod * 60*10);
+
     array_push($prod,$cur_prod);
   }
   
-  header('Content-Type: application/json');
   echo json_encode($prod);
 
 }
