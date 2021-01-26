@@ -94,7 +94,7 @@ elseif (strcmp($_GET['family'],"tic")==0){
     $p_sum=0 ;$nb=0;
     for($i=0;$i<count($pow);$i++){
 //       echo $pow[$i]['ts']-$rounded_start; echo "  "; echo $t-$rounded_start; echo "<BR>";
-      if($pow[$i]['ts']>=$t-60*5 && $pow[$i]['ts']<$t+60*5){
+      if($pow[$i]['ts']>=$t-60*10 && $pow[$i]['ts']<$t){
         $p_sum+=$pow[$i]['pow'];$nb++;
       }
       if($pow[$i]['ts']>=$t+60*5) break;
