@@ -76,9 +76,9 @@ $res =$select_messages->fetchAll();
 
 $qr_insert="insert into ".tp."ticreadings values (? , ?, ?, ?)"; //deveui as int, ts , eait , east 
 $insert_stmt = $db->prepare($qr_insert);
-
 // loop on meters
-foreach($res[0] as $dec_eui){
+foreach($res as $cur_res){
+  $dec_eui=$cur_res['deveui'];
   $hex_eui=convbase($dec_eui,'0123456789','0123456789ABCDEF');
   $more_data=TRUE;
   $to_date=t_str_chg(date(DateTime::ISO8601));
