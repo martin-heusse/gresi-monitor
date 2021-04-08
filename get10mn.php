@@ -90,17 +90,29 @@ elseif (strcmp($_GET['family'],"tic")==0){
   $last_ts=$readings[count($readings)-1]['ts'];
 //   print((($last_ts-$rounded_start)/600)."\n");
   $prev_prod=$pow[0]['pow'];
+  $prev_t=$rounded_start;
   for ($t=$rounded_start;$t<$last_ts ;$t+=60*10){
-    $p_sum=0 ;$nb=0;
+    // Gather measures within this time interval
+    $p_sum=0 ;$nb=0; $i=0;
     for($i=0;$i<count($pow);$i++){
 //       echo $pow[$i]['ts']-$rounded_start; echo "  "; echo $t-$rounded_start; echo "<BR>";
       if($pow[$i]['ts']>=$t-60*10 && $pow[$i]['ts']<$t){
         $p_sum+=$pow[$i]['pow'];$nb++;
       }
-      if($pow[$i]['ts']>=$t+60*5) break;
+      if($pow[$i]['ts']>=$t) break;
     }
-    if($nb>0){$prev_prod=$p_sum/$nb;}
-    $cur_prod=array('family'=>"tic",'serial'=>$_GET['serial'],'ts'=>$t,'prod'=>$prev_prod * 60*10);
+    if($nb>0){$prev_prod=$p_sum/$nb;$prev_t=$t;$this_prod=$prev_prod;}
+    else{
+// extrapolate!
+//       if($i<count($pow)){
+//         $next_prod=$pow[$i]['pow'];
+//         $next_ts=$pow[$i]['ts'];
+//         $this_prod=$prev_prod+($next_prod-$prev_prod)/($next_ts-$prev_t)*($t-$prev_t-5*60);
+//       }
+// Put NULL (coded by -1)
+      $this_prod=-1;
+    }
+    $cur_prod=array('family'=>"tic",'serial'=>$_GET['serial'],'ts'=>$t,'prod'=>$this_prod * 60*10);
 
     array_push($prod,$cur_prod);
   }
