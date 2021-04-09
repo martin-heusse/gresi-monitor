@@ -139,7 +139,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     let whToW=1; // This is for Wh to W conversion when step is 1h...
 //http://localhost/~heusse/Monitor/get1h.php?serial=216670215&start=1512814200&end=1512823800
     let borderDash=[];
-    let bkgdCol='rgba(0, 0, 0, 0.05)';
+    let bkgdCol='rgba(0, 0, 0, 0.03)';
     let ts = tsfromEndDate(endDate);
 
     if(zc){ //zc==null means main graph
@@ -192,7 +192,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
                 borderColor: `hsl(${Math.round((1+colIndex)/(nbMeters)*360)+45}, 100%,50%)`,
 //                 pointBorderWidth: peakPower[result[0].serial]/12,
 //                 borderWidth:1,
-                pointBorderWidth: 0.2,
+                pointBorderWidth: 0.8,
                 borderWidth:peakPower[result[0].serial]/12,
                 borderDash:borderDash,
                 data: ithMeterData,
