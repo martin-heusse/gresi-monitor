@@ -14,12 +14,12 @@ $db = connect_to_db();
 
 $reqArgs=array($_GET['serial'],$_GET['start'],$_GET['end'],$_GET['serial'],$_GET['start'],$_GET['end'],$_GET['serial']);
 
-$qr="SELECT serial, ts, prod, irrad
+$qr="SELECT 'rbee' as family, serial, ts, prod, irrad
 FROM ".tp."irrad
 WHERE serial=?
 AND ts BETWEEN ? and ?
 UNION
-SELECT ? as serial, ts, -1, 0
+SELECT 'rbee' as family, ? as serial, ts, -1, 0
 FROM ".tp."irrad
 WHERE ts BETWEEN ? AND ?
 AND (ts) NOT IN ( SELECT ts FROM ".tp."irrad WHERE serial=?)
