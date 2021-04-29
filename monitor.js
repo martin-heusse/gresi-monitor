@@ -379,8 +379,8 @@ function findTSMatching(element){
 function retrieveIrrad(zc){
     if(! $("#irradBox").prop( "checked" ))
         return;
-    // so what meter are we talking about?
-    serialNum=document.getElementById("zoomSelect").value;
+    // so what meter are we talking about? No need to check for family, as only one has irrad data
+    serialNum=splitMeterKey(document.getElementById("zoomSelect").value).serial;
     // where is the data?
     irradLoc=document.getElementById("dataUrl1h").value;
     //when?
