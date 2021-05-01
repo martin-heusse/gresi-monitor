@@ -8,6 +8,7 @@ function pageHeader($pageDesc){
 		<meta http-equiv="content-type" content="text/html;charset=utf-8" />
 		<meta http-equiv="Content-Language" content="fr" />
 		<meta http-equiv="refresh" content="600">
+    <link rel="SHORTCUT ICON" HREF="./favicon.ico">
 		<title>'
 	. $pageDesc .'</title>
 
