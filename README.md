@@ -11,6 +11,7 @@
 		- db_name
 		- db_pwd
 		- mailadmin (the admin email, for alerts)
-- to start : once the above files are good, navigate to admin.php, and press the button! (Subsequent calls are harmless...)
-- check that the tables exist
-- execute recuptodb.php to retrieve the data from solar.pvmeter... For local tests, use a small $initialNbWeeks (1 or 2), or it can take a while...
+		- loapikey : the LoRa Orange API key
+- to start : once the above files are good, take you browser to http://<your.server>/admin.php, and press the button! (Subsequent calls are harmless...)
+- check that the tables now exist
+- execute recuptodb.php (either in a shell or in a browser) to retrieve the data from solar.pvmeter... And/or call recuptodbtic.php. For local tests, use a small $initialNbWeeks (1 or 2) defined in recuptodb.php, or it can take a while...
