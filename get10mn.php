@@ -32,19 +32,25 @@ if(strcmp($_GET['family'],"rbee")==0){
 
   // Round start/end to tens minutes in order to match
   // DB when generating missing ts
-  $start = 600 * floor($start / 600);
   $start = 600 * ceil($start / 600);
 
-  // Make sure that there is a data (and maybe 0) for any existing ts in the DB within the time span
-  $qr="-- Generate all timestamps of the period
-  WITH recursive all_ts(ts) AS (
-      -- Anchor
-      SELECT @ts_start + 0 AS ts
-      UNION ALL
-      -- Recursion with stop condition
-      SELECT ts + 600 FROM all_ts WHERE ts + 600 <= @ts_end
-  )
-    -- Add -1 (null) for all missing values over the period
+  // Create a temporary table with the period timestamps
+  $qr="CREATE TEMPORARY TABLE all_ts (
+    ts integer unsigned NOT NULL,
+    PRIMARY KEY (ts)
+  );";
+  $prepare_variables = $db->prepare($qr);
+  $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+  $prepare_variables->execute();
+
+  // Fill it
+  $qr="INSERT INTO all_ts (ts) VALUES (".implode("), (", range($start, $end, 600)).");";
+  $prepare_variables = $db->prepare($qr);
+  $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+  $prepare_variables->execute();
+
+  // Create the final query to grab data
+  $qr="-- Add -1 (null) for all missing values over the period
     SELECT 'rbee' AS family, @serial AS serial, ts AS ts, -1 AS prod
       FROM all_ts
       WHERE all_ts.ts NOT IN ( SELECT ts FROM ".tp."readings WHERE serial=@serial AND (ts BETWEEN @ts_start AND @ts_end))
@@ -75,7 +81,7 @@ if(strcmp($_GET['family'],"rbee")==0){
   $select_messages->execute($reqArgs);
 
   // Send the content
-  $readings =$select_messages->fetchAll();
+  $readings = $select_messages->fetchAll();
   header('Content-Type: application/json');
   echo json_encode($readings);
 }
