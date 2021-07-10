@@ -161,7 +161,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
         if(result.length>0){
             // Process the data that was just fetched
             let ithMeterData=[];
-            let colIndex=colIndexFor(makeMeterKey(family,result[0].serial));
+            let colIndex=colIndexFor(makeMeterKey(family, serialNum));
             if(myLabels.length<result.length) // only override labels if more data in this set
                 myLabels=[];
             if(zc || !$("#radio1h").prop( "checked" ))
@@ -169,7 +169,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             result.forEach(function(item) {
                 if(myLabels.length<result.length)
                     myLabels.push(convertTS(item.ts)); // overriding previous ones, if there is more data
-                wToWc=(!zc)?1/peakPower[result[0].serial]:1; // W / Wc in main  graph, kW in the other
+                wToWc=(!zc)?1/peakPower[serialNum]:1; // W / Wc in main  graph, kW in the other
                 if(item.prod>=0)ithMeterData.push(Math.round(item.prod*whToW*wToWc)/1000);
                 else ithMeterData.push(null);
                 });
@@ -185,20 +185,18 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             else if(max===null){
                 borderDash=[2,4];
             }
-            if (typeof result[0].family == 'undefined')
-              result[0].family="";
 
-            let newData={label: meterNames[makeMeterKey(result[0].family,result[0].serial)], // ""+resultAdj[0].serial+" "+  
+            let newData={label: meterNames[makeMeterKey(family, serialNum)], // ""+resultAdj[0].serial+" "+  
                 borderColor: `hsl(${Math.round((1+colIndex)/(nbMeters)*360)+45}, 100%,50%)`,
-//                 pointBorderWidth: peakPower[result[0].serial]/12,
+//                 pointBorderWidth: peakPower[serialNum]/12,
 //                 borderWidth:1,
                 pointBorderWidth: 0.8,
-                borderWidth:peakPower[result[0].serial]/12,
+                borderWidth:peakPower[serialNum]/12,
                 borderDash:borderDash,
                 data: ithMeterData,
                 backgroundColor:bkgdCol,
-                family:result[0].family,
-                serial:result[0].serial
+                family: family,
+                serial: serialNum
                 };
             if(zc)
                 myData.push(newData);

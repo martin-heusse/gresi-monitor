@@ -42,7 +42,6 @@ if(strcmp($_GET['family'],"rbee")==0){
   $prepare_variables = $db->prepare($qr);
   $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
   $prepare_variables->execute();
-
   // Fill it
   $qr="INSERT INTO all_ts (ts) VALUES (".implode("), (", range($start, $end, 600)).");";
   $prepare_variables = $db->prepare($qr);
@@ -51,27 +50,24 @@ if(strcmp($_GET['family'],"rbee")==0){
 
   // Create the final query to grab data
   $qr="-- Add -1 (null) for all missing values over the period
-    SELECT 'rbee' AS family, @serial AS serial, ts AS ts, -1 AS prod
+    SELECT ts AS ts, -1 AS prod
       FROM all_ts
       WHERE all_ts.ts NOT IN ( SELECT ts FROM ".tp."readings WHERE serial=@serial AND (ts BETWEEN @ts_start AND @ts_end))
   UNION
     -- Select prod values for a device over the period
-    SELECT 'rbee' as family, serial, ts+0 as ts, prod
+    SELECT ts+0 as ts, prod
       FROM ".tp."readings as tr
       WHERE serial=@serial AND (tr.ts BETWEEN @ts_start and @ts_end)
   ORDER BY ts;";
 
   // Set variables used in the query
-  $qr_set_start_variable="SET @ts_start = ?;";
-  $qr_set_end_variable="SET @ts_end = ?;";
-  $qr_set_serial_variable="SET @serial = ?;";
-  $prepare_variables = $db->prepare($qr_set_start_variable);
+  $prepare_variables = $db->prepare("SET @ts_start = ?;");
   $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
   $prepare_variables->execute(array($start));
-  $prepare_variables = $db->prepare($qr_set_end_variable);
+  $prepare_variables = $db->prepare("SET @ts_end = ?;");
   $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
   $prepare_variables->execute(array($end));
-  $prepare_variables = $db->prepare($qr_set_serial_variable);
+  $prepare_variables = $db->prepare("SET @serial = ?;");
   $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
   $prepare_variables->execute(array($_GET['serial']));
 
@@ -145,7 +141,7 @@ elseif (strcmp($_GET['family'],"tic")==0){
 // Put NULL (coded by -1)
       $this_prod=-1;
     }
-    $cur_prod=array('family'=>"tic",'serial'=>$_GET['serial'],'ts'=>$t,'prod'=>$this_prod * 60*10);
+    $cur_prod=array('ts'=>$t,'prod'=>$this_prod * 60*10);
 
     array_push($prod,$cur_prod);
   }
