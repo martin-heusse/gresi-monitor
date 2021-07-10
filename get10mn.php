@@ -42,7 +42,6 @@ if(strcmp($_GET['family'],"rbee")==0){
   $prepare_variables = $db->prepare($qr);
   $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
   $prepare_variables->execute();
-
   // Fill it
   $qr="INSERT INTO all_ts (ts) VALUES (".implode("), (", range($start, $end, 600)).");";
   $prepare_variables = $db->prepare($qr);
@@ -62,16 +61,13 @@ if(strcmp($_GET['family'],"rbee")==0){
   ORDER BY ts;";
 
   // Set variables used in the query
-  $qr_set_start_variable="SET @ts_start = ?;";
-  $qr_set_end_variable="SET @ts_end = ?;";
-  $qr_set_serial_variable="SET @serial = ?;";
-  $prepare_variables = $db->prepare($qr_set_start_variable);
+  $prepare_variables = $db->prepare("SET @ts_start = ?;");
   $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
   $prepare_variables->execute(array($start));
-  $prepare_variables = $db->prepare($qr_set_end_variable);
+  $prepare_variables = $db->prepare("SET @ts_end = ?;");
   $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
   $prepare_variables->execute(array($end));
-  $prepare_variables = $db->prepare($qr_set_serial_variable);
+  $prepare_variables = $db->prepare("SET @serial = ?;");
   $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
   $prepare_variables->execute(array($_GET['serial']));
 
