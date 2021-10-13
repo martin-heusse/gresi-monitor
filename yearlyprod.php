@@ -57,7 +57,7 @@ $nbYears=$yn-$ys+1;
 
 
 tableHead();
-$tab=t2;
+$tab='t2';
 
 for ($i=0;$i<$nbYears;$i++){
   echo "<TD>".($ys+$i)."a</TD>";
@@ -140,7 +140,7 @@ for ($i=0;$i<$MAX_YEARS;$i++){
 }
 echo "</TR>";
 
-$tab=t1;
+$tab='t1';
 foreach($meters as $m){
 //ex : serial] => 210000217 [name] => name [localization] => [fisrtts] => 1512994200 [lastts] => 1518526200 [peak_power] => 8.1 [timeoffset] => 1200 
   echo "<TR>";

@@ -32,7 +32,7 @@ $select_messages = $db->prepare($qr);
 $select_messages->setFetchMode(PDO::FETCH_ASSOC);
 $select_messages->execute($reqArgs);
 $readings =$select_messages->fetchAll();
-$retreadings[$serial]=$readings[0][s];
+$retreadings[$serial]=$readings[0]['s'];
 header('Content-Type: application/json');
 echo json_encode($retreadings);
 

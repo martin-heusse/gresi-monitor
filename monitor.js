@@ -447,7 +447,7 @@ function retrieveRef(zc){
 
 function displayMonthly(endDate,meterList){
     let ts = tsfromEndDate(endDate)-3601;// go back in time 1h, to not fall on the next month when it's the last day
-    console.log("displayMontly"+ts);
+    console.log("displayMontlhy"+ts);
     let myDate=new Date(ts*1000);
     prodString = "<B>Productions pour le mois "+ (myDate.getMonth()+1) + "/"+ myDate.getFullYear() +"</B> (kWh)<BR/>";
     prodString +=  '<table class="dm">';
