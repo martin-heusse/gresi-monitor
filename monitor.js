@@ -458,10 +458,9 @@ function displayMonthly(endDate,meterList){
         let myUrl=document.getElementById("dataUrlMonth").value + "?family=" + familySerial.family + "&serial=" + familySerial.serial +"&end=" +ts;
         console.log(myUrl);
         $.getJSON(myUrl, function(result){
-            for (x in result){ //only one iteration / x is the serial
+            for (x in result){ //only one iteration / x is the meter key (<family>_<serial>)
                 if(result[x]>0){
-                  // For now, only works for rbee family !!!
-                  prodArray.push({name:meterNames[makeMeterKey("rbee",x)],prod:Math.round(result[x]/1000)});
+                  prodArray.push({name:meterNames[x],prod:Math.round(result[x]/1000)});
                   totalProdMonth+=result[x]/1000;
                 }
             }
