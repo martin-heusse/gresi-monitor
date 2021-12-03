@@ -1,4 +1,4 @@
-const prodURL="http://gresi21.fr/monitor/getWidgetSummary.php";
+const prodURL="https://gresi21.fr/monitor/getWidgetSummary.php";
 
 const starttable="<SPAN style='display:inline-table'><TABLE style='width:22em; border: 0px; border-collapse: collapse;font-family: Sans-Serif; margin: 0.1em;'>";
 const endtable="</TR></TABLE></SPAN>";
