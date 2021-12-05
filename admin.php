@@ -6,6 +6,17 @@ require_once "common.php";
 
 $db = connect_to_db();
 
+
+function check_table($db, $table_name) {
+    $db_check = $db->prepare("DESCRIBE ".tp.$table_name);
+    if ($db_check->execute()) {
+        return true;
+    } else {
+        echo "Table \"".tp.$table_name."\" has not been created.<br>";
+        return false;
+    }
+}
+
 pageHeader("Admin");
 header_form(basename(__FILE__));
 echo "<input type=\"submit\" name=\"create_base\" value=\"Créer base\"/> <-- A priori, à n'utiliser qu'une fois !";
@@ -26,7 +37,20 @@ if (isset($_POST['create_base'])){
         $update_messages = $db->prepare($qr);
         $update_messages->execute();
     }
-    echo "<h2>base créée ?!??</h2>";
+
+    # Check if tables have been correctly created
+    echo "<br><br>";
+    $status = true;
+    $status = (check_table($db, "meters") && $status);
+    $status = (check_table($db, "readings") && $status);
+    $status = (check_table($db, "irrad") && $status);
+    $status = (check_table($db, "disabled") && $status);
+    $status = (check_table($db, "ticmeters") && $status);
+    $status = (check_table($db, "ticreadings") && $status);
+
+    if ($status === true) {
+        echo "<h2>Tables successfully created !</h2>";
+    }
 }
 
 pageFoot();
