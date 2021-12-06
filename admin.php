@@ -44,15 +44,15 @@ if (isset($_POST['create_base'])){
     # Check if tables were correctly created
     echo "<br><br>";
     $status = true;
-    $status = (check_table($db, tp."meters") && $status);
-    $status = (check_table($db, tp."readings") && $status);
-    $status = (check_table($db, tp."irrad") && $status);
-    $status = (check_table($db, tp."disabled") && $status);
-    $status = (check_table($db, tp."ticmeters") && $status);
-    $status = (check_table($db, tp."ticreadings") && $status);
-    $status = (check_table($db, tp."ticpmepmimeters") && $status);
-    $status = (check_table($db, tp."ticpmepmireadings") && $status);
-    $status = (check_table($db, tp."ticpmepmiindex") && $status);
+    $status = (check_table($db,"meters") && $status);
+    $status = (check_table($db,"readings") && $status);
+    $status = (check_table($db,"irrad") && $status);
+    $status = (check_table($db,"disabled") && $status);
+    $status = (check_table($db,"ticmeters") && $status);
+    $status = (check_table($db,"ticreadings") && $status);
+    $status = (check_table($db,"ticpmepmimeters") && $status);
+    $status = (check_table($db,"ticpmepmireadings") && $status);
+    $status = (check_table($db,"ticpmepmiindex") && $status);
 
     if ($status === true) {
         echo "<h2>Tables successfully created !</h2>";
