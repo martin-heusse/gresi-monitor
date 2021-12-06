@@ -74,8 +74,9 @@ $select_messages->setFetchMode(PDO::FETCH_ASSOC);
 $select_messages->execute();
 $res =$select_messages->fetchAll();
 
-$qr_insert="insert into ".tp."ticreadings values (? , ?, ?, ?)"; //deveui as int, ts , eait , east 
+$qr_insert="insert into ".tp."ticreadings values (? , ?, ?, ?)"; //deveui as int, ts , eait , east
 $insert_stmt = $db->prepare($qr_insert);
+
 // loop on meters
 foreach($res as $cur_res){
   $dec_eui=$cur_res['deveui'];
@@ -84,7 +85,7 @@ foreach($res as $cur_res){
   $to_date=t_str_chg(date(DateTime::ISO8601));
   print($to_date);print("\n");
   $from_date=t_str_chg(date(DateTime::ISO8601,strtotime("2000-01-01")));
-  print_r($from_date); print "\n";
+  print($from_date); print "\n";
   while($more_data){
     $httpreq=build_qr($hex_eui,$from_date,$to_date);
     print($httpreq."\n");
@@ -96,7 +97,6 @@ foreach($res as $cur_res){
     // Verify the type of packet and only keeps the good ones
     $data_ok=preg_grep("/^110a00560000411b250/",$p_data);
     if(count($data_ok)==0) $more_data=FALSE;
-
     foreach($data_ok as $ts=>$p){//loop on packets
       $eait=1.0*hexdec(substr($p, -10,8));
       $east=1.0*hexdec(substr($p, -18,8));
@@ -112,6 +112,72 @@ foreach($res as $cur_res){
   $select_messages = $db->prepare($qr);
   $select_messages->execute();
   $qr = "update ".tp."ticmeters set lastts=(select max(ts) from ".tp."ticreadings where deveui=$dec_eui) where deveui=$dec_eui";
+  $select_messages = $db->prepare($qr);
+  $select_messages->execute();
+}
+
+echo("PMEPMI\n");
+########### Now PMEPMI sensors
+$qr="select deveui from ".tp."ticpmepmimeters";
+$select_messages = $db->prepare($qr);
+$select_messages->setFetchMode(PDO::FETCH_ASSOC);
+$select_messages->execute();
+$res =$select_messages->fetchAll();
+
+$qr_insert_pi="insert into ".tp."ticpmepmireadings values (? , ?, ?)"; //deveui as int, ts , mean_power
+$insert_stmt_pi = $db->prepare($qr_insert_pi);
+$qr_insert_index="insert into ".tp."ticpmepmiindex values (? ,  STR_TO_DATE(?, '%Y-%m-%e'), ?, ?, ?)"; //deveui as int, date , eait, east
+$insert_stmt_index = $db->prepare($qr_insert_index);
+
+foreach($res as $cur_res){
+  $dec_eui=$cur_res['deveui'];
+  $hex_eui=convbase($dec_eui,'0123456789','0123456789ABCDEF');
+  $more_data=TRUE;
+  $to_date=t_str_chg(date(DateTime::ISO8601));
+  print("to_date:".$to_date);print("\n");
+  $from_date=t_str_chg(date(DateTime::ISO8601,strtotime("2000-01-01")));
+  print("from_date:".$from_date); print "\n";
+  while($more_data){
+    $httpreq=build_qr($hex_eui,$from_date,$to_date);
+    print($httpreq."\n");
+    $r=json_decode(file_get_contents_lo($httpreq));
+    $p_data=array();
+    foreach($r as $packet){
+      $p_data[$packet->timestamp]=$packet->value->payload;
+    }
+    // Verify the type of packet and only keeps the good ones
+    $data_ok=preg_grep("/^110a005700004120070/",$p_data);
+    if(count($data_ok)==0) $more_data=FALSE;
+      foreach($data_ok as $ts=>$p){//loop on packets
+      $str_day=hexdec(substr($p, 32,2));
+      $str_month=hexdec(substr($p, 34,2));
+      $str_year=hexdec(substr($p, 36,2));
+      $str_year=hexdec(substr($p, 36,2));
+      $str_h=hexdec(substr($p, 38,2));
+      $str_mn=hexdec(substr($p, 40,2));
+      $dat_date=strtotime("20$str_year-$str_month-$str_day $str_h:$str_mn:00");
+      for($i=0;$i<6;$i++){
+        $t=$dat_date-$i*10*60; //Go back in time 10mn for each data
+        $pi = hexdec(substr($p, 44+$i*4,4));
+        $insert_stmt_pi->execute(array($dec_eui,$t,$pi));
+      }
+      // update $to_date for next query, before rounding it for index storage
+      $t=strtotime($ts);
+      if($t<strtotime($to_date)) {$to_date=$ts;}
+
+      // Now retrieve index
+      $str_date="20$str_year-$str_month-$str_day";
+      $eait=1.0*hexdec(substr($p, -6,6));
+      $east=1.0*hexdec(substr($p, -12,6));
+      $ptcour=hexdec(substr($p, 30,2)); # 7 -> HCE, 14 -> HPE, 18 -> P
+      $insert_stmt_index->execute(array($dec_eui,$str_date,$ptcour,$eait,$east));
+    }
+  }
+//  update fisrtts, lastts
+  $qr = "update ".tp."ticmeters set fisrtts=(select min(ts) from ".tp."ticpmepmireadings where deveui=$dec_eui) where deveui=$dec_eui";
+  $select_messages = $db->prepare($qr);
+  $select_messages->execute();
+  $qr = "update ".tp."ticmeters set lastts=(select max(ts) from ".tp."ticpmepmireadings where deveui=$dec_eui) where deveui=$dec_eui";
   $select_messages = $db->prepare($qr);
   $select_messages->execute();
 

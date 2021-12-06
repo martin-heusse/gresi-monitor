@@ -149,4 +149,61 @@ elseif (strcmp($_GET['family'],"tic")==0){
   echo json_encode($prod);
 
 }
+elseif (strcmp($_GET['family'],"ticpmepmi")==0){
+  $reqArgs=array($_GET['serial']);
+
+  $start = $start-$offset;
+  $end = $end-$offset;
+
+  // Round start/end to tens minutes in order to match
+  // DB when generating missing ts
+  $start = 600 * ceil($start / 600);
+
+  // Create a temporary table with the period timestamps
+  $qr="CREATE TEMPORARY TABLE all_ts (
+    ts integer unsigned NOT NULL,
+    PRIMARY KEY (ts)
+  );";
+  $prepare_variables = $db->prepare($qr);
+  $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+  $prepare_variables->execute();
+  // Fill it
+  $qr="INSERT INTO all_ts (ts) VALUES (".implode("), (", range($start, $end, 600)).");";
+  $prepare_variables = $db->prepare($qr);
+  $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+  $prepare_variables->execute();
+
+  // Create the final query to grab data
+  $qr="-- Add -1 (null) for all missing values over the period
+    SELECT ts AS ts, -1 AS prod
+      FROM all_ts
+      WHERE all_ts.ts NOT IN ( SELECT ts FROM ".tp."ticpmepmireadings WHERE deveui=@serial AND (ts BETWEEN @ts_start AND @ts_end))
+  UNION
+    -- Select prod values for a device over the period
+    SELECT ts+0 as ts, pi
+      FROM ".tp."ticpmepmireadings as tr
+      WHERE deveui=@serial AND (tr.ts BETWEEN @ts_start and @ts_end)
+  ORDER BY ts;";
+
+  // Set variables used in the query
+  $prepare_variables = $db->prepare("SET @ts_start = ?;");
+  $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+  $prepare_variables->execute(array($start));
+  $prepare_variables = $db->prepare("SET @ts_end = ?;");
+  $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+  $prepare_variables->execute(array($end));
+  $prepare_variables = $db->prepare("SET @serial = ?;");
+  $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+  $prepare_variables->execute(array($_GET['serial']));
+
+  // Trigger the query
+  $select_messages = $db->prepare($qr);
+  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+  $select_messages->execute($reqArgs);
+
+  // Send the content
+  $readings = $select_messages->fetchAll();
+  header('Content-Type: application/json');
+  echo json_encode($readings);
+}
 ?>

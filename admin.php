@@ -20,6 +20,9 @@ if (isset($_POST['create_base'])){
      "alter table ".tp."disabled add constraint ".tp."ref_serial2 foreign key (serial) references ".tp."meters(serial), add column replacedby integer unsigned, add constraint ".tp."ref_serial3 foreign key (replacedby) references ".tp."meters(serial)",
      "create table IF NOT EXISTS ".tp."ticmeters ( deveui bigint unsigned, name varchar(256) not null, fisrtts integer unsigned, lastts integer unsigned, peak_power float not null, primary key(deveui))",
      "create table IF NOT EXISTS ".tp."ticreadings ( deveui bigint unsigned, ts integer unsigned not null, eait integer not null, east integer not null, constraint ".tp."ref_eui foreign key (deveui) references ".tp."ticmeters(deveui), primary key(deveui,ts))",
+     "create table IF NOT EXISTS ".tp."ticpmepmimeters ( deveui bigint unsigned, name varchar(256) not null, fisrtts integer unsigned, lastts integer unsigned, peak_power float not null, primary key(deveui))",
+     "create table IF NOT EXISTS ".tp."ticpmepmireadings ( deveui bigint unsigned, ts integer unsigned not null, pi integer not null, constraint ".tp."ref_p_eui foreign key (deveui) references ".tp."ticpmepmimeters(deveui), primary key(deveui,ts))",
+     "create table IF NOT EXISTS ".tp."ticpmepmiindex( deveui bigint unsigned, date DATE not null, ptcour int unsigned not null, eait integer not null, east integer not null, constraint ".tp."ref_i_eui foreign key (deveui) references ".tp."ticpmepmimeters(deveui), primary key(deveui,ptcour,date))",
 
         ) as $qr){
         echo $qr."<br>";
