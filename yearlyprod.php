@@ -7,18 +7,41 @@ require_once "common.php";
 $MAX_YEARS=10;
 
 function getMeterProd($db,$m,$from,$to){
-  $qr="select  sum(prod)/1000 as tot from ".tp."readings r where r.ts between $from and $to and r.serial=".$m["serial"];
-  $select_messages = $db->prepare($qr);
-  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
-  $select_messages->execute();
-  $prod=$select_messages->fetchAll()[0];
-  $total=$prod["tot"];
-  $qr="select  sum(prod)/1000 as tot from ".tp."readings r,".tp."disabled d where r.ts between $from and $to and  (r.serial=d.replacedby and d.serial=".$m["serial"].")";
-  $select_messages = $db->prepare($qr);
-  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
-  $select_messages->execute();
-  $prod=$select_messages->fetchAll()[0];
-  $total+=$prod["tot"];
+  if(strcmp($m['family'],"rbee")==0){
+    $qr="select  sum(prod)/1000 as tot from ".tp."readings r where r.ts between $from and $to and r.serial=".$m["serial"];
+    $select_messages = $db->prepare($qr);
+    $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+    $select_messages->execute();
+    $prod=$select_messages->fetchAll()[0];
+    $total=$prod["tot"];
+    $qr="select  sum(prod)/1000 as tot from ".tp."readings r,".tp."disabled d where r.ts between $from and $to and  (r.serial=d.replacedby and d.serial=".$m["serial"].")";
+    $select_messages = $db->prepare($qr);
+    $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+    $select_messages->execute();
+    $prod=$select_messages->fetchAll()[0];
+    $total+=$prod["tot"];
+  }
+  else if(strcmp($m['family'],"tic")==0){
+    $reqArgs=array($m['serial'],$from);
+    $qr="select eait from ".tp."ticreadings where deveui=? and ts>? order by ts limit 1";
+    $select_messages = $db->prepare($qr);
+    $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+    $select_messages->execute($reqArgs);
+    $readings =$select_messages->fetchAll();
+    $eait1=$readings[0]['eait'];
+
+    $reqArgs=array($m['serial'],$to);
+    $qr="select eait from ".tp."ticreadings where deveui=? and ts<? order by ts desc limit 1";
+    $select_messages = $db->prepare($qr);
+    $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+    $select_messages->execute($reqArgs);
+    $readings =$select_messages->fetchAll();
+    $eait2=$readings[0]['eait'];
+
+    if(is_null($eait1)) $total=0;
+    else $total=($eait2-$eait1)/1000;
+    if ($total<0) $total=NULL;
+  }
   return($total);
 }
 
@@ -40,7 +63,6 @@ pageHeader(nameAppli()." — Productions annuelles");
 <?php
 
 $meters = get_meter_list_orig($db);
-
 
 // Par demi-année
 echo "<h2>Totaux par demi-année</h2>";
@@ -67,7 +89,7 @@ echo "</TR>";
 
 
 foreach($meters as $m){
-//ex : serial] => 210000217 [name] => name [localization] => [fisrtts] => 1512994200 [lastts] => 1518526200 [peak_power] => 8.1 [timeoffset] => 1200 
+//ex :  [family] => rbee [serial] => 211412449 [name] => 211412449 [fisrtts] => 1604151600 [lastts] => 1634083200 [peak_power] => 9 [timeoffset] => 0
   echo "<TR>";
   echo "<TD>".$m["name"]."</TD>";
   $y0=date("y",$m["fisrtts"]);
@@ -96,7 +118,7 @@ tableFoot();
 
 echo "<h2>Totaux par année civile</h2>";
 tableHead();
-$tab=t3;
+$tab='t3';
 
 for ($i=0;$i<$nbYears;$i++){
   echo "<TD>".($ys+$i)."</TD>";
