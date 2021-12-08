@@ -147,6 +147,8 @@ foreach($res as $cur_res){
     }
     // Verify the type of packet and only keeps the good ones
     $data_ok=preg_grep("/^110a005700004120070/",$p_data);
+    // The TIC info is in local time
+    date_default_timezone_set("Europe/Paris");
     if(count($data_ok)==0) $more_data=FALSE;
       foreach($data_ok as $ts=>$p){//loop on packets
       $str_day=hexdec(substr($p, 32,2));
