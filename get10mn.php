@@ -180,7 +180,7 @@ elseif (strcmp($_GET['family'],"ticpmepmi")==0){
       WHERE all_ts.ts NOT IN ( SELECT ts FROM ".tp."ticpmepmireadings WHERE deveui=@serial AND (ts BETWEEN @ts_start AND @ts_end))
   UNION
     -- Select prod values for a device over the period
-    SELECT ts+0 as ts, pi
+    SELECT ts+0 as ts, 1000*pi/6
       FROM ".tp."ticpmepmireadings as tr
       WHERE deveui=@serial AND (tr.ts BETWEEN @ts_start and @ts_end)
   ORDER BY ts;";

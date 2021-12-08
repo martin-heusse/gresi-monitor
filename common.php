@@ -79,7 +79,7 @@ function get_meter_list($db)
 }
 function get_meter_list_orig($db)
 {
-  $qr="select 'rbee' as family, serial, name, fisrtts ,lastts, peak_power,timeoffset from ".tp."meters where serial not in (select replacedby from ".tp."disabled where replacedby is not null) union select 'tic' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticmeters where fisrtts>0 order by name union select 'ticpmepmi' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticpmepmimeters where fisrtts>0 order by name";
+  $qr="select 'rbee' as family, serial, name, fisrtts ,lastts, peak_power,timeoffset from ".tp."meters where serial not in (select replacedby from ".tp."disabled where replacedby is not null) union select 'tic' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticmeters where fisrtts>0 union select 'ticpmepmi' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticpmepmimeters where fisrtts>0 order by name";
   $select_messages = $db->prepare($qr);
   $select_messages->setFetchMode(PDO::FETCH_ASSOC);
   $select_messages->execute();
