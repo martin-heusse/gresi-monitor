@@ -390,14 +390,27 @@ function retrieveIrrad(zc){
             //console.log(chartData); //chartData.labels chartData.datasets[]
 //             console.log(result); //chartData.labels chartData.datasets[]
             irradData=[]
+            // Points where production doesn't match with the irrad data
+            badPointsData=[]
+            prodData=chartData.datasets[0].data;
+            const prodTolerance = $('#prodTolerance')[0].value;
 
             for (var i = 0, len = chartData.labels.length; i < len; i++) {
                 let irradIndex=result.findIndex(findTSMatching,chartData.labels[i]);
                 if(irradIndex>0){
-                    irradData.push(result[irradIndex].irrad * peakPower[serialNum]/1000 );
+                    let irrad = result[irradIndex].irrad * peakPower[serialNum]/1000
+                    irradData.push(irrad);
+
+                    let prod = prodData[i];
+                    if (Math.abs(prod - irrad) > prodTolerance) {
+                        badPointsData.push(prod + ((irrad - prod) / 2));
+                    } else {
+                        badPointsData.push(null);
+                    }
                 }
                 else{
                     irradData.push(null);
+                    badPointsData.push(null);
                 }
             }
             chartData.datasets.push({label:"Satellite",
@@ -407,6 +420,13 @@ function retrieveIrrad(zc){
                                      pointStyle:"star",
                                      pointRadius:6,
                                      data:irradData});
+            chartData.datasets.push({label:"Écart de production",
+                                     borderColor: "red",
+                                     pointBorderWidth: 0.75,
+                                     borderWidth:1,
+                                     pointStyle:"rect",
+                                     pointRadius:6,
+                                     data:badPointsData});
             zc.zoomChart.update();
         });
 }
@@ -491,6 +511,7 @@ $( document ).ready(function() {
     retrieveMeters( document.getElementById("listUrl").value,dataLoc);
     $("#zoomSelect").change(zoomSelected);
     $("#irradBox").change(zoomSelected);
+    $("#prodTolerance").change(zoomSelected);
     $("#zoomenddate").change(zoomSelected);
     $("#hideAll").click(hideAll);
     $("#GenerateURL").click(GenerateURL);
