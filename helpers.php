@@ -24,21 +24,17 @@ function get_rbee_prod($db , $serial, $date_start, $date_end) {
 }
 
 function get_tic_prod($db , $serial, $date_start, $date_end) {
-    $sql = "SELECT eait FROM ".tp."ticreadings WHERE deveui=:serial AND ts > :ts_start ORDER BY ts LIMIT 1";
+    $sql = "SELECT MAX(eait)-MIN(eait) AS prod FROM ".tp."ticreadings
+            WHERE deveui=:serial AND ts BETWEEN :ts_start AND :ts_end
+    ";
     $query = $db->prepare($sql);
     $query->bindValue('serial', $serial, PDO::PARAM_INT);
     $query->bindValue('ts_start', $date_start->getTimestamp(), PDO::PARAM_INT);
-    $query->execute();
-    $eait1 = $query->fetch(PDO::FETCH_ASSOC)['eait'];
-
-    $sql = "SELECT eait FROM ".tp."ticreadings WHERE deveui=:serial AND ts < :ts_end ORDER BY ts DESC LIMIT 1";
-    $query = $db->prepare($sql);
-    $query->bindValue('serial', $serial, PDO::PARAM_INT);
     $query->bindValue('ts_end', $date_end->getTimestamp(), PDO::PARAM_INT);
     $query->execute();
-    $eait2 = $query->fetch(PDO::FETCH_ASSOC)['eait'];
+    $prod = $query->fetch(PDO::FETCH_ASSOC)["prod"];
 
-    return is_null($eait1)? 0 : $eait2-$eait1;
+    return is_null($prod)? 0 : $prod;
 }
 
 ?>
