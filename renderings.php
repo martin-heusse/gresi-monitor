@@ -28,7 +28,7 @@ function render_36kwc_invoicing_data($data) {
                     "Prod3 (kWh)",
                     "Total (kWh)"
                 ) as $item) {
-        echo "<TD>".$item."</TD>";
+        echo "<TH>".$item."</TH>";
     }
     echo "</TR>";
 
