@@ -51,6 +51,8 @@ foreach ($meters as $meter) {
                     $csv_row[] = $sum/1000;
                     break;
                 case "tic":
+                    $sum = get_tic_prod($db, $meter["serial"], $period->date_start, $period->date_end);
+                    $csv_row[] = $sum/1000;
                     break;
                 case "ticpmepmi":
                     break;
