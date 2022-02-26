@@ -3,6 +3,7 @@ require_once "constants.php";
 require_once "ids.php"; // Contains the identifier + Password to connect to RTone web API
 require_once "common.php";
 require_once "helpers.php";
+require_once "renders.php";
 
 
 $db = connect_to_db();
@@ -10,12 +11,7 @@ $db = connect_to_db();
 // TODO - Or get_meter_list_origin()?
 $meters = get_meter_list($db, 36);
 
-// Create CSV output
-header("Content-Type: text/csv; charset=utf-8");
-header("Content-Disposition: attachment; filename=prod.csv");
-$output_csv = fopen("php://output", 'w');
-fputcsv($output_csv, array("Compteur", "Date d'installation", "Année", "Prod1 (kWh)", "Prod2 (kWh)", "Prod3 (kWh)", "Total (kWh)"));
-
+$render_csv = $_GET['csv'] !== null ? true : false;
 
 foreach ($meters as $meter) {
     $installation_date = (new DateTime('@'.$meter["fisrtts"]))->setTime(0, 0, 0);
@@ -64,10 +60,20 @@ foreach ($meters as $meter) {
         }
         // Compute total and write line to the CSV file
         $csv_row[] = $csv_row[3] + $csv_row[4] + $csv_row[5];
-        fputcsv($output_csv, $csv_row);
+        $data[] = $csv_row;
 
         $anniversary_date->modify("+1 year");
     }
+}
+
+if ($render_csv !== null) {
+    render_csv(
+        "production.csv",
+        array("Compteur", "Date d'installation", "Année", "Prod1 (kWh)", "Prod2 (kWh)", "Prod3 (kWh)", "Total (kWh)"),
+        $data
+    );
+} else {
+    echo "Render array<br>";
 }
 
 ?>
