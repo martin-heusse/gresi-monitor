@@ -3,7 +3,7 @@ require_once "constants.php";
 require_once "ids.php"; // Contains the identifier + Password to connect to RTone web API
 require_once "common.php";
 require_once "helpers.php";
-require_once "renders.php";
+require_once "renderings.php";
 
 
 $db = connect_to_db();
@@ -66,14 +66,14 @@ foreach ($meters as $meter) {
     }
 }
 
-if ($render_csv !== null) {
+if ($render_csv === true) {
     render_csv(
         "production.csv",
         array("Compteur", "Date d'installation", "Année", "Prod1 (kWh)", "Prod2 (kWh)", "Prod3 (kWh)", "Total (kWh)"),
         $data
     );
 } else {
-    echo "Render array<br>";
+    render_36kwc_invoicing_data($data);
 }
 
 ?>
