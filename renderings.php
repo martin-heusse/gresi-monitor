@@ -16,6 +16,7 @@ function render_csv($filename, $header, $data) {
 function render_36kwc_invoicing_data($data) {
     pageHeader(nameAppli()." — Données facturations 36 kWc+");
     echo "<h2>Production annuelle avec séparation 6 mois/date anniversaire:</h2>";
+    echo '<form action="" method="post"><button name="csv" value="true">Download as CSV</button></form><br>';
     echo "<DIV class='sc'><TABLE CLASS='prod'>";
     echo "<TR>";
     foreach (array(
