@@ -10,7 +10,7 @@ class time_period {
     }
 }
 
-function get_rbee_prod($db , $serial, $date_start, $date_end) {
+function get_rbee_prod($db, $serial, $date_start, $date_end) {
     $sql = "SELECT COALESCE(SUM(prod),0) AS sum FROM ".tp."readings
             WHERE serial=:serial AND ts BETWEEN :ts_start AND :ts_end
     ";
