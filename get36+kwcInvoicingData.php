@@ -16,16 +16,19 @@ $render_csv = $_POST['csv'] !== null ? true : false;
 foreach ($meters as $meter) {
     $installation_date = (new DateTime('@'.$meter["fisrtts"]))->setTime(0, 0, 0);
     $anniversary_date = clone $installation_date;
+    $end_of_the_year = new DateTime('@'.strtotime('12/31'));
+    // Limit to the last and current year
+    $anniversary_date->setDate(date("Y")-1, $anniversary_date->format("m"), $anniversary_date->format("d"));
 
-    while ($anniversary_date < new DateTime()) {
-        $csv_row = [];
+    $csv_row = [];
+    $csv_row[] = $meter["name"];
+    $csv_row[] = $installation_date->format("d/m/Y");
+
+
+    while ($anniversary_date < $end_of_the_year) {
         $period_1 = new time_period();
         $period_2 = new time_period();
         $period_3 = new time_period();
-
-        $csv_row[] = $meter["name"];
-        $csv_row[] = $installation_date->format("d/m/Y");
-        $csv_row[] = $anniversary_date->format("Y");
 
         $period_1->date_start->setDate($anniversary_date->format('Y'), 1, 1);
         if ($anniversary_date->format('m') > 6) {
@@ -61,17 +64,25 @@ foreach ($meters as $meter) {
             }
         }
         // Compute total and write line to the CSV file
-        $csv_row[] = $csv_row[3] + $csv_row[4] + $csv_row[5];
-        $data[] = $csv_row;
+        
 
         $anniversary_date->modify("+1 year");
     }
+    $data[] = $csv_row;
 }
 
 if ($render_csv === true) {
     render_csv(
         "production.csv",
-        array("Compteur", "Date d'installation", "Année", "Prod1 (kWh)", "Prod2 (kWh)", "Prod3 (kWh)", "Total (kWh)"),
+        array("Compteur",
+            "Date d'installation",
+            (date("Y")-1)."-debut (kWh)",
+            (date("Y")-1)."-semestre (kWh)",
+            (date("Y")-1)."-fin (kWh)",
+            date("Y")."-debut (kWh)",
+            date("Y")."-semestre (kWh)",
+            date("Y")."-fin (kWh)"
+        ),
         $data
     );
 } else {

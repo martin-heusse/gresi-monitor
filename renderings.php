@@ -22,13 +22,14 @@ function render_36kwc_invoicing_data($data) {
     foreach (array(
                     "Compteur",
                     "Date d'installation",
-                    "Année",
-                    "Prod1 (kWh)",
-                    "Prod2 (kWh)",
-                    "Prod3 (kWh)",
-                    "Total (kWh)"
+                    (date("Y")-1)."-debut (kWh)",
+                    (date("Y")-1)."-semestre (kWh)",
+                    (date("Y")-1)."-fin (kWh)",
+                    date("Y")."-debut (kWh)",
+                    date("Y")."-semestre (kWh)",
+                    date("Y")."-fin (kWh)"
                 ) as $item) {
-        echo "<TH>".$item."</TH>";
+        echo '<TH style="padding: 10px;">'.$item.'</TH>';
     }
     echo "</TR>";
 
