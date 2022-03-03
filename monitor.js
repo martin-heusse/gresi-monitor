@@ -11,7 +11,7 @@ let prodArray=[];
 let prodString="";
 
 let zoomNbDays=0.7;
-let mainNbDays=1;
+let mainNbDays=7;
 let mainNbDays10mn=0.7;
 let lastShownHour=20; // !! UTC
 let threshAdjustDate=6;// if last ts in db is before threshAdjustDate oclock in the morning, adjust date
