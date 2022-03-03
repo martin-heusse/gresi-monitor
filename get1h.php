@@ -20,20 +20,6 @@ $end = $_GET['end'];
 // Get meter family
 $family = $_GET['family'];
 
-//// Create a temporary table with the period timestamps
-//$qr = "CREATE TEMPORARY TABLE all_ts (
-//    ts integer unsigned NOT NULL,
-//    PRIMARY KEY (ts)
-//);";
-//$prepare_variables = $db->prepare($qr);
-//$prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
-//$prepare_variables->execute();
-//// Fill it
-//$qr = "INSERT INTO all_ts (ts) VALUES (" . implode("), (", range($start, $end, 3600)) . ");";
-//$prepare_variables = $db->prepare($qr);
-//$prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
-//$prepare_variables->execute();
-
 if ($family == 'rbee') {
     header('Content-Type: application/json');
     echo json_encode(get_readings_rbee($start, $end, 3600));
