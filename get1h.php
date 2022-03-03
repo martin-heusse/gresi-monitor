@@ -126,46 +126,8 @@ if ($family == 'rbee') {
 
     echo json_encode($prod);
 } else if ($family == 'ticpmepmi') {
-    // Grab data from ticpmepmireadings
-    $qr = "-- Add -1 (null) for all missing values over the period
-    SELECT ts AS ts, -1 AS prod
-        FROM all_ts
-        WHERE all_ts.ts NOT IN ( SELECT ts FROM " . tp . "ticpmepmireadings WHERE deveui=@serial AND (ts BETWEEN @ts_start AND @ts_end))
-    UNION
-    -- Select prod values for a device over the period
-    SELECT ts+0 as ts, 1000*pi/6
-        FROM " . tp . "ticpmepmireadings as tr
-        WHERE deveui=@serial AND (tr.ts BETWEEN @ts_start and @ts_end)
-    ORDER BY ts;";
-
-    // Set variables used in the query
-    $prepare_variables = $db->prepare("SET @ts_start = ?;");
-    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
-    $prepare_variables->execute(array($start));
-    $prepare_variables = $db->prepare("SET @ts_end = ?;");
-    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
-    $prepare_variables->execute(array($end));
-    $prepare_variables = $db->prepare("SET @serial = ?;");
-    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
-    $prepare_variables->execute(array($_GET['serial']));
-
-    // Trigger the query
-    $select_messages = $db->prepare($qr);
-    $select_messages->setFetchMode(PDO::FETCH_ASSOC);
-    $select_messages->execute($reqArgs);
-
-    // Send the content
-    $readings = $select_messages->fetchAll();
-
-    // Verify content (if ts % 3600 == 0)
-    foreach ($readings as $key => $reading) {
-        if ((int)$reading['ts'] % 3600 != 0)
-            unset($readings[$key]);
-    }
-    sort($readings);
-
     header('Content-Type: application/json');
-    echo json_encode($readings);
+    echo json_encode(get_readings_ticpmepmi($start, $end, 3600));
 }
 
 ?>
