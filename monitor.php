@@ -79,7 +79,7 @@ if (isset($_POST['dataspan'])){
 
 <div class="sc" style="width:100%; padding:6px;">
 <?php header_form($_SERVER['REQUEST_URI']);?>
-  Afficher la semaine se terminant le : 
+  Afficher la semaine se terminant le :
   <input type="date" onChange='this.form.submit();'  id="enddate" name="enddate" value="<?php echo $enddate;?>"/>
   <input type="submit"/>
   <input type="submit" name="prevweek" value="<<"/>
@@ -99,9 +99,10 @@ if (isset($_POST['dataspan'])){
   <canvas id="globalChart" ></canvas>
 </div>
 
-
-<select id="zoomSelect" name="zoommeter" disabled form="fid"></select>  <input type="checkbox" id="irradBox" name="irradbox" form="fid"><label for="irradBox"> Satellite</label>
-<span style="margin-left:10%;">Période de référence :</span><input style="margin-left:1%;" type="date" id="zoomenddate" name="zoomenddate" form="fid"/>
+<div style="display: flex;justify-content: space-between">
+    <div><select id="zoomSelect" name="zoommeter" disabled form="fid"></select>  <input type="checkbox" id="irradBox" name="irradbox" form="fid"><label for="irradBox"> Satellite</label></div>
+    <div><span>Période de référence :</span><input style="margin-left:1%;" type="date" id="zoomenddate" name="zoomenddate" form="fid"/></div>
+</div>
 <div class="chartClass">
   <canvas id="zoomChart"></canvas>
 </div>
