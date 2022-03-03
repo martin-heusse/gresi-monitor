@@ -94,4 +94,77 @@ function get_meter_list_check($db)
   return $select_messages->fetchAll();
 }
 
+function get_readings_ticpmepmi($start, $end, $second)
+{
+    $db = connect_to_db();
+
+    $qr = "CREATE TEMPORARY TABLE all_ts (
+        ts integer unsigned NOT NULL,
+        PRIMARY KEY (ts)
+    );";
+    $prepare_variables = $db->prepare($qr);
+    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+    $prepare_variables->execute();
+    // Fill it
+    $qr = "INSERT INTO all_ts (ts) VALUES (" . implode("), (", range($start, $end, 3600)) . ");";
+    $prepare_variables = $db->prepare($qr);
+    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+    $prepare_variables->execute();
+
+    $qr = "-- Add -1 (null) for all missing values over the period
+    SELECT ts AS ts, -1 AS prod
+        FROM all_ts
+        WHERE all_ts.ts NOT IN ( SELECT ts FROM " . tp . "ticpmepmireadings WHERE deveui=@serial AND (ts BETWEEN @ts_start AND @ts_end))
+    UNION
+    -- Select prod values for a device over the period
+    SELECT ts+0 as ts, 1000*pi/6 as prod
+        FROM " . tp . "ticpmepmireadings as tr
+        WHERE deveui=@serial AND (tr.ts BETWEEN @ts_start and @ts_end)
+    ORDER BY ts;";
+
+    // Set variables used in the query
+    $prepare_variables = $db->prepare("SET @ts_start = ?;");
+    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+    $prepare_variables->execute(array($start));
+    $prepare_variables = $db->prepare("SET @ts_end = ?;");
+    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+    $prepare_variables->execute(array($end));
+    $prepare_variables = $db->prepare("SET @serial = ?;");
+    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+    $prepare_variables->execute(array($_GET['serial']));
+
+    // Trigger the query
+    $select_messages = $db->prepare($qr);
+    $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+    $select_messages->execute($reqArgs);
+    $readings = $select_messages->fetchAll();
+
+    $result = [];
+    $sum = 0;
+    $nb = 0;
+    foreach ($readings as $reading) {
+        $sum += $reading['prod'];
+        $nb++;
+
+        if ((int)$reading['ts'] % $second == 0) {
+            if ($nb == $second / 600) {
+                $result[] = [
+                    'ts' => $reading['ts'],
+                    'prod' => $sum,
+                ];
+            } else {
+                $result[] = [
+                    'ts' => $reading['ts'],
+                    'prod' => -1,
+                ];
+            }
+
+            $sum = 0;
+            $nb = 0;
+        }
+    }
+
+    return $result;
+}
+
 ?>
