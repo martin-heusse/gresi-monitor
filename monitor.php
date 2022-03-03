@@ -102,7 +102,6 @@ if (isset($_POST['dataspan'])){
 <div style="display: flex;justify-content: space-between">
     <div><select id="zoomSelect" name="zoommeter" disabled form="fid"></select>  <input type="checkbox" id="irradBox" name="irradbox" form="fid"><label for="irradBox"> Satellite</label></div>
     <div><span>Période de référence :</span><input style="margin-left:1%;" type="date" id="zoomenddate" name="zoomenddate" form="fid"/></div>
-    <div><span>Tolérance écart de production</span><input style="margin-left:1%;" type="number" id="prodTolerance" name="prodTolerance" form="fid" value="1,5" step="0.1"/></div>
 </div>
 <div class="chartClass">
   <canvas id="zoomChart"></canvas>
