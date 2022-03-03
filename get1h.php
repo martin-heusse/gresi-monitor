@@ -1,7 +1,7 @@
 <?php
 require_once "constants.php";
 require_once "ids.php"; // Contains the identifier + Password to connect to RTone web API
-require_once "common.php"; 
+require_once "common.php";
 
 ini_set("zlib.output_compression", "On");
 ini_set("zlib.output_compression_level", "-1");
@@ -15,10 +15,13 @@ $db = connect_to_db();
 // DB when generating missing ts
 $start = $_GET['start'];
 $start = 3600 * ceil($start / 3600);
-$end=$_GET['end'];
+$end = $_GET['end'];
+
+// Get meter family
+$family = $_GET['family'];
 
 // Create a temporary table with the period timestamps
-$qr="CREATE TEMPORARY TABLE all_ts (
+$qr = "CREATE TEMPORARY TABLE all_ts (
     ts integer unsigned NOT NULL,
     PRIMARY KEY (ts)
 );";
@@ -26,42 +29,143 @@ $prepare_variables = $db->prepare($qr);
 $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
 $prepare_variables->execute();
 // Fill it
-$qr="INSERT INTO all_ts (ts) VALUES (".implode("), (", range($start, $end, 3600)).");";
+$qr = "INSERT INTO all_ts (ts) VALUES (" . implode("), (", range($start, $end, 3600)) . ");";
 $prepare_variables = $db->prepare($qr);
 $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
 $prepare_variables->execute();
 
-// Create the final query to grab data
-$qr="-- Add -1 (null) for all missing values over the period
-SELECT ts AS ts, -1 AS prod, 0 as irrad
-    FROM all_ts
-    WHERE all_ts.ts NOT IN ( SELECT ts FROM ".tp."irrad WHERE serial=@serial AND (ts BETWEEN @ts_start AND @ts_end))
-UNION
--- Select prod values for a device over the period
-SELECT ts as ts, prod, irrad
-    FROM ".tp."irrad as tr
-    WHERE serial=@serial AND (tr.ts BETWEEN @ts_start and @ts_end)
-ORDER BY ts;";
+if ($family == 'rbee') {
+    // Create the final query to grab data
+    $qr = "-- Add -1 (null) for all missing values over the period
+    SELECT ts AS ts, -1 AS prod, 0 as irrad
+        FROM all_ts
+        WHERE all_ts.ts NOT IN ( SELECT ts FROM " . tp . "irrad WHERE serial=@serial AND (ts BETWEEN @ts_start AND @ts_end))
+    UNION
+    -- Select prod values for a device over the period
+    SELECT ts as ts, prod, irrad
+        FROM " . tp . "irrad as tr
+        WHERE serial=@serial AND (tr.ts BETWEEN @ts_start and @ts_end)
+    ORDER BY ts;";
 
-// Set variables used in the query
-$prepare_variables = $db->prepare("SET @ts_start = ?;");
-$prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
-$prepare_variables->execute(array($start));
-$prepare_variables = $db->prepare("SET @ts_end = ?;");
-$prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
-$prepare_variables->execute(array($end));
-$prepare_variables = $db->prepare("SET @serial = ?;");
-$prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
-$prepare_variables->execute(array($_GET['serial']));
+    // Set variables used in the query
+    $prepare_variables = $db->prepare("SET @ts_start = ?;");
+    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+    $prepare_variables->execute(array($start));
+    $prepare_variables = $db->prepare("SET @ts_end = ?;");
+    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+    $prepare_variables->execute(array($end));
+    $prepare_variables = $db->prepare("SET @serial = ?;");
+    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+    $prepare_variables->execute(array($_GET['serial']));
 
-// Trigger the query
-$select_messages = $db->prepare($qr);
-$select_messages->setFetchMode(PDO::FETCH_ASSOC);
-$select_messages->execute($reqArgs);
+    // Trigger the query
+    $select_messages = $db->prepare($qr);
+    $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+    $select_messages->execute($reqArgs);
 
-// Send the content
-$readings = $select_messages->fetchAll();
-header('Content-Type: application/json');
-echo json_encode($readings);
+    // Send the content
+    $readings = $select_messages->fetchAll();
+
+    header('Content-Type: application/json');
+    echo json_encode($readings);
+} else if ($family == 'tic') {
+    $qr = "SELECT deveui as serial, ts, eait
+        FROM " . tp . "ticreadings
+        WHERE deveui=?
+        AND ts BETWEEN ? and ? order by ts";
+    $reqArgs = array($_GET['serial'], $start, $end);
+    $select_messages = $db->prepare($qr);
+    $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+    $select_messages->execute($reqArgs);
+    $readings = $select_messages->fetchAll();
+
+    $prod = array();
+    $rounded_start = $start;
+
+    if (count($readings) < 2) exit;
+
+    header('Content-Type: application/json');
+
+    // Build an array of power
+    $pow = array();
+    for ($i = 1; $i < count($readings); $i++) {
+        if ($readings[$i]['ts'] - $readings[$i - 1]['ts'] == 0) continue;// Ya never know
+        $p = ($readings[$i]['eait'] - $readings[$i - 1]['eait']) / ($readings[$i]['ts'] - $readings[$i - 1]['ts']);
+        $t = ($readings[$i]['ts'] + $readings[$i - 1]['ts']) / 2;
+        $cur_pow = array('ts' => $t, 'pow' => $p);
+        array_push($pow, $cur_pow);
+    }
+
+    if (count($pow) < 2) exit;
+    $last_ts = $readings[count($readings) - 1]['ts'];
+    $prev_prod = $pow[0]['pow'];
+    $prev_t = $rounded_start;
+    for ($t = $rounded_start; $t < $last_ts; $t += 3600) {
+        // Gather measures within this time interval
+        $p_sum = 0;
+        $nb = 0;
+        $i = 0;
+        for (; $i < count($pow); $i++) {
+            if ($pow[$i]['ts'] >= $t - 3600 && $pow[$i]['ts'] < $t) {
+                $p_sum += $pow[$i]['pow'];
+                $nb++;
+            }
+            if ($pow[$i]['ts'] >= $t) break;
+        }
+        if ($nb > 0) {
+            $prev_prod = $p_sum / $nb;
+            $prev_t = $t;
+            $this_prod = $prev_prod;
+        } else {
+            $this_prod = -1;
+        }
+        $cur_prod = array('ts' => $t, 'prod' => $this_prod * 3600);
+
+        array_push($prod, $cur_prod);
+    }
+
+    echo json_encode($prod);
+} else if ($family == 'ticpmepmi') {
+    // Grab data from ticpmepmireadings
+    $qr = "-- Add -1 (null) for all missing values over the period
+    SELECT ts AS ts, -1 AS prod
+        FROM all_ts
+        WHERE all_ts.ts NOT IN ( SELECT ts FROM " . tp . "ticpmepmireadings WHERE deveui=@serial AND (ts BETWEEN @ts_start AND @ts_end))
+    UNION
+    -- Select prod values for a device over the period
+    SELECT ts+0 as ts, 1000*pi/6
+        FROM " . tp . "ticpmepmireadings as tr
+        WHERE deveui=@serial AND (tr.ts BETWEEN @ts_start and @ts_end)
+    ORDER BY ts;";
+
+    // Set variables used in the query
+    $prepare_variables = $db->prepare("SET @ts_start = ?;");
+    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+    $prepare_variables->execute(array($start));
+    $prepare_variables = $db->prepare("SET @ts_end = ?;");
+    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+    $prepare_variables->execute(array($end));
+    $prepare_variables = $db->prepare("SET @serial = ?;");
+    $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
+    $prepare_variables->execute(array($_GET['serial']));
+
+    // Trigger the query
+    $select_messages = $db->prepare($qr);
+    $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+    $select_messages->execute($reqArgs);
+
+    // Send the content
+    $readings = $select_messages->fetchAll();
+
+    // Verify content (if ts % 3600 == 0)
+    foreach ($readings as $key => $reading) {
+        if ((int)$reading['ts'] % 3600 != 0)
+            unset($readings[$key]);
+    }
+    sort($readings);
+
+    header('Content-Type: application/json');
+    echo json_encode($readings);
+}
 
 ?>
