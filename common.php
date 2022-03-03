@@ -145,6 +145,67 @@ function get_readings_rbee($start, $end, $second)
     return $select_messages->fetchAll();
 }
 
+function get_readings_tic($start, $end, $second)
+{
+    $db = connect_to_db();
+
+    $start = $start + $second;
+    $qr = "SELECT deveui as serial, ts, eait
+        FROM " . tp . "ticreadings
+        WHERE deveui=?
+        AND ts BETWEEN ? and ? order by ts";
+    $reqArgs = array($_GET['serial'], $start, $end);
+    $select_messages = $db->prepare($qr);
+    $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+    $select_messages->execute($reqArgs);
+    $readings = $select_messages->fetchAll();
+
+    $prod = array();
+    $rounded_start = $start;
+
+    if (count($readings) < 2) exit;
+
+    // Build an array of power
+    $pow = array();
+    for ($i = 1; $i < count($readings); $i++) {
+        if ($readings[$i]['ts'] - $readings[$i - 1]['ts'] == 0) continue;// Ya never know
+        $p = ($readings[$i]['eait'] - $readings[$i - 1]['eait']) / ($readings[$i]['ts'] - $readings[$i - 1]['ts']);
+        $t = ($readings[$i]['ts'] + $readings[$i - 1]['ts']) / 2;
+        $cur_pow = array('ts' => $t, 'pow' => $p);
+        array_push($pow, $cur_pow);
+    }
+
+    if (count($pow) < 2) exit;
+    $last_ts = $readings[count($readings) - 1]['ts'];
+    $prev_prod = $pow[0]['pow'];
+    $prev_t = $rounded_start;
+    for ($t = $rounded_start; $t < $last_ts; $t += $second) {
+        // Gather measures within this time interval
+        $p_sum = 0;
+        $nb = 0;
+        $i = 0;
+        for (; $i < count($pow); $i++) {
+            if ($pow[$i]['ts'] >= $t - $second && $pow[$i]['ts'] < $t) {
+                $p_sum += $pow[$i]['pow'];
+                $nb++;
+            }
+            if ($pow[$i]['ts'] >= $t) break;
+        }
+        if ($nb > 0) {
+            $prev_prod = $p_sum / $nb;
+            $prev_t = $t;
+            $this_prod = $prev_prod;
+        } else {
+            $this_prod = -1;
+        }
+        $cur_prod = array('ts' => $t, 'prod' => $this_prod * $second);
+
+        array_push($prod, $cur_prod);
+    }
+
+    return $prod;
+}
+
 function get_readings_ticpmepmi($start, $end, $second)
 {
     $db = connect_to_db();
