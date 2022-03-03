@@ -96,6 +96,8 @@ function get_meter_list_check($db)
 
 function get_readings_rbee($start, $end, $second)
 {
+    $db = connect_to_db();
+
     // Create a temporary table with the period timestamps
     $qr = "CREATE TEMPORARY TABLE all_ts (
         ts integer unsigned NOT NULL,
@@ -111,14 +113,15 @@ function get_readings_rbee($start, $end, $second)
     $prepare_variables->execute();
 
     // Create the final query to grab data
+    $table = $second == 600 ? "readings" : "irrad";
     $qr = "-- Add -1 (null) for all missing values over the period
     SELECT ts AS ts, -1 AS prod
         FROM all_ts
-        WHERE all_ts.ts NOT IN ( SELECT ts FROM " . tp . "readings WHERE serial=@serial AND (ts BETWEEN @ts_start AND @ts_end))
+        WHERE all_ts.ts NOT IN ( SELECT ts FROM " . tp . $table . " WHERE serial=@serial AND (ts BETWEEN @ts_start AND @ts_end))
     UNION
     -- Select prod values for a device over the period
     SELECT ts+0 as ts, prod
-        FROM " . tp . "readings as tr
+        FROM " . tp . $table . " as tr
         WHERE serial=@serial AND (tr.ts BETWEEN @ts_start and @ts_end)
     ORDER BY ts;";
 
@@ -154,7 +157,7 @@ function get_readings_ticpmepmi($start, $end, $second)
     $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
     $prepare_variables->execute();
     // Fill it
-    $qr = "INSERT INTO all_ts (ts) VALUES (" . implode("), (", range($start, $end, 3600)) . ");";
+    $qr = "INSERT INTO all_ts (ts) VALUES (" . implode("), (", range($start, $end, $second)) . ");";
     $prepare_variables = $db->prepare($qr);
     $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
     $prepare_variables->execute();
