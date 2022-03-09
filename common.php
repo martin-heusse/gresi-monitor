@@ -72,11 +72,11 @@ function date_to_str($time){ // Reciprocal of builtin strtotime()
 function get_meter_list($db, $min_peak_power=0)
 {
   $sql = "SELECT 'rbee' AS family, serial, name, fisrtts ,lastts, peak_power,timeoffset FROM ".tp."meters
-              WHERE peak_power >= :peak_power
+              WHERE peak_power > :peak_power
           UNION SELECT 'tic' AS family, deveui AS serial, name, fisrtts ,lastts, peak_power, 0 AS timeoffset FROM ".tp."ticmeters
-              WHERE peak_power >= :peak_power
+              WHERE peak_power > :peak_power
           UNION SELECT 'ticpmepmi' AS family, deveui AS serial, name, fisrtts ,lastts, peak_power, 0 AS timeoffset FROM ".tp."ticpmepmimeters
-              WHERE peak_power >= :peak_power";
+              WHERE peak_power > :peak_power";
   
   $query = $db->prepare($sql);
   $query->bindValue('peak_power', $min_peak_power, PDO::PARAM_INT);
