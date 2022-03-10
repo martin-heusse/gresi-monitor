@@ -133,6 +133,56 @@ function colIndexFor(serialString){
     return namesArray.sort().indexOf(meterNames[serialString]);
 }
 
+/**
+ * Compute the sun radiation for a given solar panel at a given time
+ *
+ * @param LAT {number} latitude of the location
+ * @param betta {number} inclination of the panel
+ * @param gamma {number} azimuth of the panel
+ * @param Dh {number} optimal irradiance of the panel
+ * @param date {Date} date of the calculation
+ * @returns {number} the radiation
+ */
+function computeSunRadiation(LAT, betta, gamma, Dh, date) {
+    // Get current year (A), month (M), day (Q) and hours (H)
+    const A = date.getFullYear();
+    const M = date.getMonth();
+    const Q = date.getDate();
+    const H = date.getHours();
+
+    // Compute Julian Date
+    const G = 1;
+    const S = M < 9 ? -1 : 1;
+    const B = Math.abs(M - 9);
+    const J1 = Math.trunc(A + S * Math.trunc(B / 7));
+    const J2 = Math.trunc(Math.trunc(J1 / 100 + 1) * 0.75);
+    const DJ = Math.trunc(7 * (Math.trunc((M + 9) / 12) + A) / 4) + Math.trunc(275 * M / 9) + Q + G * (J2 + 2) + 367 * A + 1721027;
+
+    // Compute angular coordinates of earth (t)
+    const n = DJ - 2451545.0;
+    const L = 280.460 + 0.9856474 * n;
+    const g = 357.528 + 0.9856003 * n;
+    const t = L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g);
+
+    // Compute angle time (AH)
+    const AH = 15 * H;
+
+    // Compute earth declination (delta)
+    const delta = 0.4 * Math.sin(t);
+
+    // Compute sun elevation (HS)
+    const HS = (Math.sin(LAT) * Math.sin(delta)) + (Math.cos(LAT) * Math.cos(delta) * Math.cos(AH));
+
+    // Compute sun azimuth (AZ)
+    const AZ = Math.cos(delta) * Math.sin(AH) / Math.cos(HS);
+
+    // Compute incidence angle (alpha)
+    const alpha = (Math.cos(betta) * Math.sin(HS)) + (Math.sin(betta) * Math.cos(HS) * Math.cos(AZ - gamma));
+
+    // Compute and return radiation
+    return Dh * Math.cos(alpha) / Math.sin(HS);
+}
+
 function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     let serialNum=serialInfo.serial;
     let family=serialInfo.family;
@@ -185,6 +235,8 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             else if(max===null){
                 borderDash=[2,4];
             }
+
+            // TODO : check zc != null and generate data for theoric output
 
             let newData={label: meterNames[makeMeterKey(family, serialNum)], // ""+resultAdj[0].serial+" "+  
                 borderColor: `hsl(${Math.round((1+colIndex)/(nbMeters)*360)+45}, 100%,50%)`,
