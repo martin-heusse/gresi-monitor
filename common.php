@@ -69,14 +69,22 @@ function date_to_str($time){ // Reciprocal of builtin strtotime()
   return date("Y-m-d\TH:i:s",$time);
 }
 
-function get_meter_list($db)
+function get_meter_list($db, $min_peak_power=0)
 {
-  $qr="select 'rbee' as family, serial, name, fisrtts ,lastts, peak_power,timeoffset from ".tp."meters  union select 'tic' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticmeters union select 'ticpmepmi' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticpmepmimeters";
-  $select_messages = $db->prepare($qr);
-  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
-  $select_messages->execute();
-  return $select_messages->fetchAll();
+  $sql = "SELECT 'rbee' AS family, serial, name, fisrtts ,lastts, peak_power,timeoffset FROM ".tp."meters
+              WHERE peak_power > :peak_power
+          UNION SELECT 'tic' AS family, deveui AS serial, name, fisrtts ,lastts, peak_power, 0 AS timeoffset FROM ".tp."ticmeters
+              WHERE peak_power > :peak_power
+          UNION SELECT 'ticpmepmi' AS family, deveui AS serial, name, fisrtts ,lastts, peak_power, 0 AS timeoffset FROM ".tp."ticpmepmimeters
+              WHERE peak_power > :peak_power";
+  
+  $query = $db->prepare($sql);
+  $query->bindValue('peak_power', $min_peak_power, PDO::PARAM_INT);
+  $query->execute();
+
+  return $query->fetchAll(PDO::FETCH_ASSOC);
 }
+
 function get_meter_list_orig($db)
 {
   $qr="select 'rbee' as family, serial, name, fisrtts ,lastts, peak_power,timeoffset from ".tp."meters where serial not in (select replacedby from ".tp."disabled where replacedby is not null) union select 'tic' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticmeters where fisrtts>0 union select 'ticpmepmi' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticpmepmimeters where fisrtts>0 order by name";
