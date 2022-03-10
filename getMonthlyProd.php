@@ -48,25 +48,13 @@ elseif (strcmp($_GET['family'], "tic")==0) {
     new DateTime('@'.$endts)
   );
 }
-elseif (strcmp($_GET['family'],"ticpmepmi")==0){
-  $reqArgs=array($serial,$startts-2*3600); # time offset to be sure to get first day of month, regardless of time zone/daylightsaving ?.
-  $qr="select sum(i.eait) seait from ".tp."ticpmepmiindex i inner join (select min(date) date,ptcour,eait,deveui from ".tp."ticpmepmiindex where deveui=? and UNIX_TIMESTAMP(date)>? group by ptcour)  sub on i.date=sub.date and i.deveui=sub.deveui and i.ptcour=sub.ptcour;";
-  $select_messages = $db->prepare($qr);
-  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
-  $select_messages->execute($reqArgs);
-  $readings =$select_messages->fetchAll();
-  $eait1=$readings[0]['seait'];
-
-  $reqArgs=array($serial,$endts);
-  $qr="select sum(i.eait) seait from ".tp."ticpmepmiindex i inner join (select max(date) date,ptcour,eait,deveui from ".tp."ticpmepmiindex where deveui=? and UNIX_TIMESTAMP(date)<? group by ptcour)  sub on i.date=sub.date and i.deveui=sub.deveui and i.ptcour=sub.ptcour;1";
-  $select_messages = $db->prepare($qr);
-  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
-  $select_messages->execute($reqArgs);
-  $readings =$select_messages->fetchAll();
-  $eait2=$readings[0]['seait'];
-
-  if(is_null($eait1)) $retreadings["ticpmepmi_".$serial]=0;
-  else $retreadings["ticpmepmi_".$serial]=1000*($eait2-$eait1);
+elseif (strcmp($_GET['family'],"ticpmepmi") == 0) {
+  $retreadings["ticpmepmi_".$serial] = get_tic_pmepmi_prod(
+    $db,
+    $serial,
+    new DateTime('@'.$startts),
+    new DateTime('@'.$endts)
+  );
 }
 echo json_encode($retreadings);
 

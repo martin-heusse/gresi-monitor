@@ -58,6 +58,8 @@ foreach ($meters as $meter) {
                     $csv_row[] = $sum/1000;
                     break;
                 case "ticpmepmi":
+                    $sum = get_tic_pmepmi_prod($db, $meter["serial"], $period->date_start, $period->date_end);
+                    $csv_row[] = $sum/1000;
                     break;
                 default:
                     throw new Exception("Unknown meter family: ".$meter["family"]);
