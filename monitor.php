@@ -107,9 +107,18 @@ if (isset($_POST['dataspan'])){
   <canvas id="zoomChart"></canvas>
 </div>
 
+<div>
+  <br />
+  <form action="./yearlyprod.php">
+    <button type="submit">Productions annuelles</button>
+  </form>
+  <form action="./get36+kwcInvoicingData.php">
+    <button type="submit">Productions 36kwh+</button>
+  </form>
+</div>
+
 <div class="sc">
-<span id="MonthlyProd" style="margin-top:2%;display: inline-block" > </span>
-<span style="margin-top:2%;margin-left:10px";><a  href="./yearlyprod.php"> Productions annuelles</a></span>
+  <span id="MonthlyProd" style="margin-top:2%;display: inline-block" ></span>
 </div>
 </body>
 </html>
