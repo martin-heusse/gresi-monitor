@@ -16,7 +16,7 @@ function get_rbee_prod($db, $serial, $date_start, $date_end) {
     ";
     // Oddly, summing on prod from XXirrad table does not give the good results
     $query = $db->prepare($sql);
-    $query->bindValue('serial', $serial, PDO::PARAM_INT);
+    $query->bindValue('serial', $serial, PDO::PARAM_STR);
     $query->bindValue('ts_start', $date_start->getTimestamp(), PDO::PARAM_INT);
     $query->bindValue('ts_end', $date_end->getTimestamp(), PDO::PARAM_INT);
     $query->execute();
@@ -28,7 +28,7 @@ function get_tic_prod($db , $serial, $date_start, $date_end) {
             WHERE deveui=:serial AND ts BETWEEN :ts_start AND :ts_end
     ";
     $query = $db->prepare($sql);
-    $query->bindValue('serial', $serial, PDO::PARAM_INT);
+    $query->bindValue('serial', $serial, PDO::PARAM_STR);
     $query->bindValue('ts_start', $date_start->getTimestamp(), PDO::PARAM_INT);
     $query->bindValue('ts_end', $date_end->getTimestamp(), PDO::PARAM_INT);
     $query->execute();
@@ -44,7 +44,7 @@ function get_tic_pmepmi_prod($db , $serial, $date_start, $date_end) {
             UNIX_TIMESTAMP(date) BETWEEN :ts_start AND :ts_end
             GROUP BY ptcour";
     $query = $db->prepare($sql);
-    $query->bindValue('serial', $serial, PDO::PARAM_INT);
+    $query->bindValue('serial', $serial, PDO::PARAM_STR);
     $query->bindValue('ts_start', $date_start->getTimestamp(), PDO::PARAM_INT);
     $query->bindValue('ts_end', $date_end->getTimestamp(), PDO::PARAM_INT);
     $query->execute();
