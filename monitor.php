@@ -109,10 +109,10 @@ if (isset($_POST['dataspan'])){
 
 <div>
   <br />
-  <form action="./yearlyprod.php">
+  <form action="./yearlyprod.php" style="display: inline">
     <button type="submit">Productions annuelles</button>
   </form>
-  <form action="./get36+kwcInvoicingData.php">
+  <form action="./get36+kwcInvoicingData.php" style="display: inline">
     <button type="submit">Productions 36kwh+</button>
   </form>
 </div>
