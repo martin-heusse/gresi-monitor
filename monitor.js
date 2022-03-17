@@ -1,5 +1,6 @@
 let nbMeterDone=0,nbMeters=0,nbMetersOK=0;
 let myLabels=[];
+let myTs=[];
 let myData=[];
 let zc={zoomChart:null}; // holds the pointer to the zoom chart object, to destroy it when needed
 let mc={mainChart:null}; // holds the pointer to the main chart object
@@ -184,6 +185,22 @@ function computeSunRadiation(LAT, betta, gamma, Dh, date) {
     return Dh * Math.cos(alpha) / Math.sin(HS);
 }
 
+function getTheoricOutput(zc) {
+    let data = [];
+    myTs.forEach((ts) => {
+        // TODO : get the real latitude from the solar panel
+        data.push(computeSunRadiation(45, 30, 0, 9, new Date(ts)));
+    });
+
+    zc.zoomChart.data.datasets.push({
+        label: 'Theoric output',
+        fill: false,
+        borderColor: 'grey',
+        data: data
+    });
+    zc.zoomChart.update();
+}
+
 function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     let serialNum=serialInfo.serial;
     let family=serialInfo.family;
@@ -213,13 +230,17 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             // Process the data that was just fetched
             let ithMeterData=[];
             let colIndex=colIndexFor(makeMeterKey(family, serialNum));
-            if(myLabels.length<result.length) // only override labels if more data in this set
-                myLabels=[];
+            if(myLabels.length<result.length) { // only override labels if more data in this set
+                myLabels = [];
+                myTs = [];
+            }
             if(zc || !$("#radio1h").prop( "checked" ))
               result=adjustTime(result);
             result.forEach(function(item) {
-                if(myLabels.length<result.length)
+                if(myLabels.length<result.length) {
                     myLabels.push(convertTS(item.ts)); // overriding previous ones, if there is more data
+                    myTs.push(item.ts);
+                }
                 wToWc=(!zc)?1/peakPower[serialNum]:1; // W / Wc in main  graph, kW in the other
                 if(item.prod>=0)ithMeterData.push(Math.round(item.prod*whToW*wToWc)/1000);
                 else ithMeterData.push(null);
@@ -235,11 +256,6 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             }
             else if(max===null){
                 borderDash=[2,4];
-            }
-
-            // TODO : check zc != null and generate data for theoric output
-            if (zc != null) {
-
             }
 
             let newData={label: meterNames[makeMeterKey(family, serialNum)], // ""+resultAdj[0].serial+" "+  
@@ -291,6 +307,7 @@ function dataRetrieved(statusChar,destCtx,zc){
             zc.zoomChart=doPlot(destCtx,0);
             retrieveIrrad(zc);
             retrieveRef(zc);
+            getTheoricOutput(zc);
         }
     }
 
