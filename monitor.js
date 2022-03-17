@@ -144,11 +144,12 @@ function colIndexFor(serialString){
  * @returns {number} the radiation
  */
 function computeSunRadiation(LAT, betta, gamma, Dh, date) {
-    // Get current year (A), month (M), day (Q) and hours (H)
+    // Get current year (A), month (M), day (Q), hours (H) and minutes (m)
     const A = date.getFullYear();
     const M = date.getMonth();
     const Q = date.getDate();
     const H = date.getHours();
+    const m = date.getMinutes();
 
     // Compute Julian Date
     const G = 1;
@@ -165,7 +166,7 @@ function computeSunRadiation(LAT, betta, gamma, Dh, date) {
     const t = L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g);
 
     // Compute angle time (AH)
-    const AH = 15 * H;
+    const AH = 15 * (H + m / 60);
 
     // Compute earth declination (delta)
     const delta = 0.4 * Math.sin(t);
@@ -237,6 +238,9 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             }
 
             // TODO : check zc != null and generate data for theoric output
+            if (zc != null) {
+
+            }
 
             let newData={label: meterNames[makeMeterKey(family, serialNum)], // ""+resultAdj[0].serial+" "+  
                 borderColor: `hsl(${Math.round((1+colIndex)/(nbMeters)*360)+45}, 100%,50%)`,
