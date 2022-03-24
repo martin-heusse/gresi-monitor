@@ -145,51 +145,65 @@ function colIndexFor(serialString){
  * @returns {number} the radiation
  */
 function computeSunRadiation(LAT, betta, gamma, Dh, date) {
-    // Get current year (A), month (M), day (Q), hours (H) and minutes (m)
-    const A = date.getFullYear();
-    const M = date.getMonth();
-    const Q = date.getDate();
+    // Get current hours (H) and minutes (m)
     const H = date.getHours();
     const m = date.getMinutes();
 
-    // Compute Julian Date
-    const G = 1;
-    const S = M < 9 ? -1 : 1;
-    const B = Math.abs(M - 9);
-    const J1 = Math.trunc(A + S * Math.trunc(B / 7));
-    const J2 = Math.trunc(Math.trunc(J1 / 100 + 1) * 0.75);
-    const DJ = Math.trunc(7 * (Math.trunc((M + 9) / 12) + A) / 4) + Math.trunc(275 * M / 9) + Q + G * (J2 + 2) + 367 * A + 1721027;
-
-    // Compute angular coordinates of earth (t)
-    const n = DJ - 2451545.0;
-    const L = 280.460 + 0.9856474 * n;
-    const g = 357.528 + 0.9856003 * n;
-    const t = L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g);
+    // Get number of days passed since the beginning of the year
+    const begin = new Date(date.getFullYear(), 0, 1);
+    const d = Math.ceil((date - begin) / 86_400_000); // 3600 * 24 * 1000
 
     // Compute angle time (AH)
-    const AH = 15 * (H + m / 60);
+    const EoT = 229.18 * (0.000075 + 0.001868 * Math.cos(d) - 0.032077 * Math.sin(d) - 0.014615 * Math.cos(2 * d) - 0.040849 * Math.sin(2 * d));
+    const LongV = 0; // TODO
+    const time = (H + m / 60) /*+ (EoT + LongV)*/;
+    const AH = (15 * (time - 12)) * (Math.PI / 180);
 
     // Compute earth declination (delta)
-    const delta = 0.4 * Math.sin(t);
+    const delta = Math.asin(
+        Math.sin(
+            -23.44 * (Math.PI / 180)
+        ) *
+        Math.cos(
+            ((2 * Math.PI) / 365.24) * (d + 10) +
+            ((2 * Math.PI) / Math.PI) * 0.0167 * Math.sin(
+                ((2 * Math.PI) / 365.24) * (d - 2)
+            )
+        )
+    );
 
     // Compute sun elevation (HS)
-    const HS = (Math.sin(LAT) * Math.sin(delta)) + (Math.cos(LAT) * Math.cos(delta) * Math.cos(AH));
+    const HS = Math.asin(
+        (Math.sin(LAT) * Math.sin(delta)) +
+        (Math.cos(LAT) * Math.cos(delta) * Math.cos(AH))
+    );
 
     // Compute sun azimuth (AZ)
-    const AZ = Math.cos(delta) * Math.sin(AH) / Math.cos(HS);
+    let A = Math.acos(
+        (Math.sin(delta) * Math.cos(LAT) - Math.cos(delta) * Math.sin(LAT) * Math.cos(AH)) /
+        Math.cos(HS)
+    );
+    if (AH > 0)
+        A = 2 * Math.PI - A;
+    const AZ = A;
 
     // Compute incidence angle (alpha)
-    const alpha = (Math.cos(betta) * Math.sin(HS)) + (Math.sin(betta) * Math.cos(HS) * Math.cos(AZ - gamma));
+    const alpha = Math.acos((Math.cos(betta) * Math.sin(HS)) + (Math.sin(betta) * Math.cos(HS) * Math.cos(AZ - gamma)));
 
-    // Compute and return radiation
-    return Dh * Math.cos(alpha) / Math.sin(HS);
+    return Math.cos(alpha) * Dh;
 }
 
 function getTheoricOutput(zc) {
     let data = [];
     myTs.forEach((ts) => {
-        // TODO : get the real latitude from the solar panel
-        data.push(computeSunRadiation(45, 30, 0, 9, new Date(ts)));
+        // TODO : get the real latitude of the solar panel + betta and gamma + Dh
+        const sr = computeSunRadiation(45 * (Math.PI / 180),
+            20 * (Math.PI / 180),
+            250 * (Math.PI / 180),
+            100,
+            new Date(ts * 1000 - 3600 * 1000));
+        //data.push(sr)
+        data.push(sr < 0 ? 0 : sr);
     });
 
     zc.zoomChart.data.datasets.push({
