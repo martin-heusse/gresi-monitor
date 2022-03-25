@@ -38,38 +38,55 @@ function get_tic_prod($db , $serial, $date_start, $date_end) {
 }
 
 function get_tic_pmepmi_prod($db , $serial, $date_start, $date_end) {
+// # Debug code
+//     $sql="SELECT MAX(date) AS date_start FROM ".tp."ticpmepmiindex
+//             WHERE deveui=:serial AND
+//             UNIX_TIMESTAMP(date) < :ts_end
+//             GROUP BY ptcour";
+//             
+//     $query = $db->prepare($sql);
+//     $query->bindValue('serial', $serial, PDO::PARAM_STR);
+//     $query->bindValue('ts_end', $date_start->getTimestamp(), PDO::PARAM_INT);
+//     $query->execute();
+//     $readings = $query->fetchAll(PDO::FETCH_ASSOC);
+//     error_log(print_r($readings, TRUE)); 
+//     
+//     $sql="SELECT MAX(date) AS date_end FROM ".tp."ticpmepmiindex
+//             WHERE deveui=:serial AND
+//             UNIX_TIMESTAMP(date) < :ts_end
+//             GROUP BY ptcour";
+//             
+//     $query = $db->prepare($sql);
+//     $query->bindValue('serial', $serial, PDO::PARAM_STR);
+//     $query->bindValue('ts_end', $date_end->getTimestamp(), PDO::PARAM_INT);
+//     $query->execute();
+//     $readings = $query->fetchAll(PDO::FETCH_ASSOC);
+//     error_log(print_r($readings, TRUE)); 
     
-    $sql="SELECT MIN(eait) AS min_eait FROM ".tp."ticpmepmiindex
+    $sql="SELECT MAX(eait) AS max_eait FROM ".tp."ticpmepmiindex
             WHERE deveui=:serial AND
-            UNIX_TIMESTAMP(date) BETWEEN :ts_start AND :ts_end
+            UNIX_TIMESTAMP(date) < :ts_end+4*3600
             GROUP BY ptcour";
+            
     $query = $db->prepare($sql);
     $query->bindValue('serial', $serial, PDO::PARAM_STR);
-    $query->bindValue('ts_start', $date_start->getTimestamp(), PDO::PARAM_INT);
-    $query->bindValue('ts_end', $date_end->getTimestamp(), PDO::PARAM_INT);
+    $query->bindValue('ts_end', $date_start->getTimestamp(), PDO::PARAM_INT);
     $query->execute();
     $readings = $query->fetchAll(PDO::FETCH_ASSOC);
     $eait1=0;
     foreach ($readings as $reading) {
-      error_log(print_r($reading, TRUE)); 
-      $eait1+=$reading['min_eait'];
+//       error_log(print_r($reading, TRUE)); 
+      $eait1+=$reading['max_eait'];
     }
     
-
-    $sql="SELECT MAX(eait) AS max_eait FROM monitorticpmepmiindex
-            WHERE deveui=:serial AND
-            UNIX_TIMESTAMP(date)>:ts_start AND UNIX_TIMESTAMP(date)<=:ts_end
-            GROUP BY ptcour";
-    $query = $db->prepare($sql);
-    $query->bindValue('serial', $serial, PDO::PARAM_INT);
-    $query->bindValue('ts_start', $date_start->getTimestamp(), PDO::PARAM_INT);
     $query->bindValue('ts_end', $date_end->getTimestamp(), PDO::PARAM_INT);
     $query->execute();
     $readings = $query->fetchAll(PDO::FETCH_ASSOC);
 
+
     $eait2=0;
     foreach ($readings as $reading) {
-      error_log(print_r($reading, TRUE)); 
+//       error_log(print_r($reading, TRUE)); 
       $eait2+=$reading['max_eait'];
     }
 
