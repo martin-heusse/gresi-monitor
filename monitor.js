@@ -151,44 +151,25 @@ function computeSunRadiation(LAT, betta, gamma, Dh, date) {
 
     // Get number of days passed since the beginning of the year
     const begin = new Date(date.getFullYear(), 0, 1);
-    const d = Math.ceil((date - begin) / 86_400_000); // 3600 * 24 * 1000
-
-    // Compute angle time (AH)
-    const EoT = 229.18 * (0.000075 + 0.001868 * Math.cos(d) - 0.032077 * Math.sin(d) - 0.014615 * Math.cos(2 * d) - 0.040849 * Math.sin(2 * d));
-    const LongV = 0; // TODO
-    const time = (H + m / 60) /*+ (EoT + LongV)*/;
-    const AH = (15 * (time - 12)) * (Math.PI / 180);
+    const d = Math.trunc((date - begin) / 86_400_000); // 3600 * 24 * 1000
 
     // Compute earth declination (delta)
-    const delta = Math.asin(
-        Math.sin(
-            -23.44 * (Math.PI / 180)
-        ) *
-        Math.cos(
-            ((2 * Math.PI) / 365.24) * (d + 10) +
-            ((2 * Math.PI) / Math.PI) * 0.0167 * Math.sin(
-                ((2 * Math.PI) / 365.24) * (d - 2)
-            )
-        )
+    const delta = 23.45 * (Math.PI / 180) * Math.sin(
+        2 * Math.PI * ((284 + d) / 36.25)
     );
 
-    // Compute sun elevation (HS)
-    const HS = Math.asin(
-        (Math.sin(LAT) * Math.sin(delta)) +
-        (Math.cos(LAT) * Math.cos(delta) * Math.cos(AH))
-    );
-
-    // Compute sun azimuth (AZ)
-    let A = Math.acos(
-        (Math.sin(delta) * Math.cos(LAT) - Math.cos(delta) * Math.sin(LAT) * Math.cos(AH)) /
-        Math.cos(HS)
-    );
-    if (AH > 0)
-        A = 2 * Math.PI - A;
-    const AZ = A;
+    // Compute angle time (AH)
+    const time = (H + m / 60);
+    const AH = (15 * (time - 12)) * (Math.PI / 180);
 
     // Compute incidence angle (alpha)
-    const alpha = Math.acos((Math.cos(betta) * Math.sin(HS)) + (Math.sin(betta) * Math.cos(HS) * Math.cos(AZ - gamma)));
+    const alpha = Math.acos(
+        (Math.sin(delta) * Math.sin(LAT) * Math.cos(betta)) +
+        (Math.sin(delta) * Math.cos(LAT) * Math.sin(betta) * Math.cos(gamma)) +
+        (Math.cos(delta) * Math.cos(LAT) * Math.cos(betta) * Math.cos(AH)) -
+        (Math.cos(delta) * Math.sin(LAT) * Math.sin(betta) * Math.cos(gamma) * Math.cos(AH)) -
+        (Math.cos(delta) * Math.sin(betta) * Math.sin(gamma) * Math.sin(AH))
+    );
 
     return Math.cos(alpha) * Dh;
 }
