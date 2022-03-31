@@ -194,7 +194,7 @@ function computeSunRadiation(LAT, betta, gamma, Dh, date) {
 }
 
 function getTheoricOutput(zc) {
-    let data = [];
+    let theoric = [];
     myTs.forEach((ts) => {
         // TODO : get the real latitude of the solar panel + betta and gamma + Dh
         const sr = computeSunRadiation(45 * (Math.PI / 180),
@@ -202,16 +202,34 @@ function getTheoricOutput(zc) {
             250 * (Math.PI / 180),
             100,
             new Date(ts * 1000 - 3600 * 1000));
-        //data.push(sr)
-        data.push(sr < 0 ? 0 : sr);
+        //theoric.push(sr)
+        theoric.push(sr < 0 ? 0 : sr);
     });
 
     zc.zoomChart.data.datasets.push({
         label: 'Theoric output',
         fill: false,
         borderColor: 'grey',
-        data: data
+        data: theoric
     });
+
+    let optimal = [];
+    myTs.forEach((ts) => {
+        const sr = computeSunRadiation(45 * (Math.PI / 180),
+            45 * (Math.PI / 180),
+            180 * (Math.PI / 180),
+            100,
+            new Date(ts * 1000 - 3600 * 1000));
+        optimal.push(sr < 0 ? 0 : sr);
+    });
+
+    zc.zoomChart.data.datasets.push({
+        label: 'Optimal output',
+        fill: false,
+        borderColor: 'green',
+        data: optimal
+    });
+
     zc.zoomChart.update();
 }
 
