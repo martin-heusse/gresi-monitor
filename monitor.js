@@ -10,6 +10,7 @@ let endDate=null;
 let nbProdDone=0;nbProd=0;totalProdMonth=0
 let prodArray=[];
 let prodString="";
+let metersData=[];
 
 let zoomNbDays=0.7;
 let mainNbDays=7;
@@ -71,6 +72,7 @@ function retrieveMeters(listLoc,dataLoc) {
                 nbMeters++;
                 meterNames[makeMeterKey(result[i].family,result[i].serial)]=result[i].name;
                 peakPower[result[i].serial]=result[i].peak_power;
+                metersData[makeMeterKey(result[i].family,result[i].serial)]=result[i];
                 lasttsCorrected= parseInt(result[i].lastts)+ parseInt(result[i].timeoffset);
                 if (lasttsCorrected>lastTsInData) lastTsInData=lasttsCorrected;
                 setTimeout(retrieveData, i*1,result[i],dataLoc,destCtx,null);  // setTimeout paces the calls to the web API, here each ms
@@ -182,23 +184,30 @@ function computeSunRadiation(LONG, LAT, betta, gamma, Dh, date) {
     return Math.cos(alpha) * Dh;
 }
 
-function getTheoricOutput(zc) {
+/**
+ *
+ * @param zc The chart
+ * @param serialInfo Info on the meters
+ */
+function getTheoricOutput(zc, serialInfo) {
     const computeDate = (ts) => {
         let ed = new Date(ts * 1000);
         let tzOffset = ed.getTimezoneOffset();
         ed = ed.valueOf() + (tzOffset * 60 * 1000);
         return new Date(ed);
-    }
+    };
+
+    // Retrieve data of meters
+    const data = metersData[makeMeterKey(serialInfo.family, serialInfo.serial)];
 
     let theoric = [];
     myTs.forEach((ts) => {
-        // TODO : get the real betta and gamma + Dh of solar panel
         const sr = computeSunRadiation(
-            5.7,
-            45 * (Math.PI / 180),
-            20 * (Math.PI / 180),
-            250 * (Math.PI / 180),
-            100,
+            data.LONG * (Math.PI / 180),
+            data.LAT * (Math.PI / 180),
+            data.betta * (Math.PI / 180),
+            data.gamma * (Math.PI / 180),
+            data.peak_power,
             computeDate(ts)
         );
         theoric.push(sr < 0 ? 0 : sr);
@@ -310,10 +319,12 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
         }
         nbMetersOK++;
         dataRetrieved("+",destCtx,zc);
+        getTheoricOutput(zc, serialInfo);
     })
     .fail(function() {
         console.log( "error retrieve");
         dataRetrieved("x",destCtx,zc);
+        getTheoricOutput(zc, serialInfo);
     });
 }
 
@@ -340,7 +351,6 @@ function dataRetrieved(statusChar,destCtx,zc){
             zc.zoomChart=doPlot(destCtx,0);
             retrieveIrrad(zc);
             retrieveRef(zc);
-            getTheoricOutput(zc);
         }
     }
 
