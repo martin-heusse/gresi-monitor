@@ -198,6 +198,15 @@ function getTheoricOptimalOutput(zc, serialInfo) {
     };
 
     // Retrieve data of meters
+    /**
+     * @type {{
+     *     LONG: number,
+     *     LAT: number,
+     *     betta: number,
+     *     gamma: number,
+     *     peak_power: number
+     * }} And some other values but not used here
+     */
     const data = metersData[makeMeterKey(serialInfo.family, serialInfo.serial)];
 
     let theoric = [];
