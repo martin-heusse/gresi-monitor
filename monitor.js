@@ -189,7 +189,7 @@ function computeSunRadiation(LONG, LAT, betta, gamma, Dh, date) {
  * @param zc The chart
  * @param serialInfo Info on the meters
  */
-function getTheoricOutput(zc, serialInfo) {
+function getTheoricOptimalOutput(zc, serialInfo) {
     const computeDate = (ts) => {
         let ed = new Date(ts * 1000);
         let tzOffset = ed.getTimezoneOffset();
@@ -319,12 +319,12 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
         }
         nbMetersOK++;
         dataRetrieved("+",destCtx,zc);
-        getTheoricOutput(zc, serialInfo);
+        getTheoricOptimalOutput(zc, serialInfo);
     })
     .fail(function() {
         console.log( "error retrieve");
         dataRetrieved("x",destCtx,zc);
-        getTheoricOutput(zc, serialInfo);
+        getTheoricOptimalOutput(zc, serialInfo);
     });
 }
 
