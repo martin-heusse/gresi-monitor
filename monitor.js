@@ -137,6 +137,7 @@ function colIndexFor(serialString){
 /**
  * Compute the sun radiation for a given solar panel at a given time
  *
+ * @param LONG {number} longitude of the location
  * @param LAT {number} latitude of the location
  * @param betta {number} inclination of the panel
  * @param gamma {number} azimuth of the panel
@@ -144,7 +145,7 @@ function colIndexFor(serialString){
  * @param date {Date} date of the calculation
  * @returns {number} the radiation
  */
-function computeSunRadiation(LAT, betta, gamma, Dh, date) {
+function computeSunRadiation(LONG, LAT, betta, gamma, Dh, date) {
     // Get current hours (H) and minutes (m)
     const H = date.getHours();
     const m = date.getMinutes();
@@ -158,9 +159,16 @@ function computeSunRadiation(LAT, betta, gamma, Dh, date) {
         2 * Math.PI * ((284 + d) / 36.25)
     );
 
-    // Compute angle time (AH)
-    const time = (H + m / 60);
-    const AH = (15 * (time - 12)) * (Math.PI / 180);
+    // Compute local solar time (LST)
+    const dTUTC = date.getTimezoneOffset() / 60.0;
+    const LSTM = (15 * dTUTC) * (Math.PI / 180);
+    const B = ((2 * Math.PI) / 365) * (d - 81);
+    const EOT = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+    const TC = 4 * (LONG - LSTM) + EOT;
+    const LST = date.valueOf() / 1000 + TC / 60;
+
+    // Compute hour angle (AH)
+    const AH = (15 * ((LST / 3600) - 12)) * (Math.PI / 180);
 
     // Compute incidence angle (alpha)
     const alpha = Math.acos(
@@ -175,15 +183,24 @@ function computeSunRadiation(LAT, betta, gamma, Dh, date) {
 }
 
 function getTheoricOutput(zc) {
+    const computeDate = (ts) => {
+        let ed = new Date(ts * 1000);
+        let tzOffset = ed.getTimezoneOffset();
+        ed = ed.valueOf() + (tzOffset * 60 * 1000);
+        return new Date(ed);
+    }
+
     let theoric = [];
     myTs.forEach((ts) => {
-        // TODO : get the real latitude of the solar panel + betta and gamma + Dh
-        const sr = computeSunRadiation(45 * (Math.PI / 180),
+        // TODO : get the real betta and gamma + Dh of solar panel
+        const sr = computeSunRadiation(
+            5.7,
+            45 * (Math.PI / 180),
             20 * (Math.PI / 180),
             250 * (Math.PI / 180),
             100,
-            new Date(ts * 1000 - 3600 * 1000));
-        //theoric.push(sr)
+            computeDate(ts)
+        );
         theoric.push(sr < 0 ? 0 : sr);
     });
 
@@ -196,11 +213,14 @@ function getTheoricOutput(zc) {
 
     let optimal = [];
     myTs.forEach((ts) => {
-        const sr = computeSunRadiation(45 * (Math.PI / 180),
+        const sr = computeSunRadiation(
+            5.7,
+            45 * (Math.PI / 180),
             45 * (Math.PI / 180),
             180 * (Math.PI / 180),
             100,
-            new Date(ts * 1000 - 3600 * 1000));
+            computeDate(ts)
+        );
         optimal.push(sr < 0 ? 0 : sr);
     });
 
