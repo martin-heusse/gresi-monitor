@@ -71,19 +71,76 @@ function date_to_str($time){ // Reciprocal of builtin strtotime()
 
 function get_meter_list($db)
 {
-  $qr="select 'rbee' as family, serial, name, fisrtts ,lastts, peak_power,timeoffset from ".tp."meters  union select 'tic' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticmeters union select 'ticpmepmi' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticpmepmimeters";
+  $qr="select 'rbee' as family, serial, name, fisrtts ,lastts,timeoffset from ".tp."meters  union select 'tic' as family, deveui as serial, name, fisrtts ,lastts, 0 as timeoffset from ".tp."ticmeters union select 'ticpmepmi' as family, deveui as serial, name, fisrtts ,lastts, 0 as timeoffset from ".tp."ticpmepmimeters";
   $select_messages = $db->prepare($qr);
   $select_messages->setFetchMode(PDO::FETCH_ASSOC);
   $select_messages->execute();
-  return $select_messages->fetchAll();
+  $meters =  $select_messages->fetchAll();
+  $qr = "select name, longitude, latitude, peak_power, azimuth, tilt from ".tp."metersdata";
+  $select_messages = $db->prepare($qr);
+  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+  $select_messages->execute();
+  $data = $select_messages->fetchAll();
+  $result = [];
+  // Concatenate meters with data in one array using name as join key
+  foreach ($meters as $meter) {
+    foreach ($data as $d) {
+      if ($meter['name'] == $d['name']) {
+        $res = [];
+        $res['family'] = $meter['family'];
+        $res['serial'] = $meter['serial'];
+        $res['name'] = $meter['name']; // == $data['name']
+        $res['fisrtts'] = $meter['fisrtts'];
+        $res['lastts'] = $meter['lastts'];
+        $res['peak_power'] = $d['peak_power'];
+        $res['timeoffset'] = $meter['timeoffset'];
+        $res['LONG'] = $d['longitude'];
+        $res['LAT'] = $d['latitude'];
+        $res['betta'] = $d['azimuth'];
+        $res['gamma'] = $d['tilt'];
+
+        $result[] = $res;
+      }
+    }
+  }
+
+  return $result;
 }
 function get_meter_list_orig($db)
 {
-  $qr="select 'rbee' as family, serial, name, fisrtts ,lastts, peak_power,timeoffset from ".tp."meters where serial not in (select replacedby from ".tp."disabled where replacedby is not null) union select 'tic' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticmeters where fisrtts>0 union select 'ticpmepmi' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticpmepmimeters where fisrtts>0 order by name";
+  $qr="select 'rbee' as family, serial, name, fisrtts ,lastts,timeoffset from ".tp."meters where serial not in (select replacedby from ".tp."disabled where replacedby is not null) union select 'tic' as family, deveui as serial, name, fisrtts ,lastts, 0 as timeoffset from ".tp."ticmeters where fisrtts>0 union select 'ticpmepmi' as family, deveui as serial, name, fisrtts ,lastts, 0 as timeoffset from ".tp."ticpmepmimeters where fisrtts>0 order by name";
   $select_messages = $db->prepare($qr);
   $select_messages->setFetchMode(PDO::FETCH_ASSOC);
   $select_messages->execute();
-  return $select_messages->fetchAll();
+  $meters =  $select_messages->fetchAll();
+  $qr = "select name, longitude, latitude, peak_power, azimuth, tilt from ".tp."metersdata";
+  $select_messages = $db->prepare($qr);
+  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+  $select_messages->execute();
+  $data = $select_messages->fetchAll();
+  $result = [];
+  // Concatenate meters with data in one array using name as join key
+  foreach ($meters as $meter) {
+    foreach ($data as $d) {
+      if ($meter['name'] == $d['name']) {
+        $res = [];
+        $res['family'] = $meter['family'];
+        $res['serial'] = $meter['serial'];
+        $res['name'] = $meter['name']; // == $data['name']
+        $res['fisrtts'] = $meter['fisrtts'];
+        $res['lastts'] = $meter['lastts'];
+        $res['peak_power'] = $d['peak_power'];
+        $res['timeoffset'] = $meter['timeoffset'];
+//        $res['LONG'] = $d['longitude']; useless
+//        $res['LAT'] = $d['latitude'];
+//        $res['betta'] = $d['azimuth'];
+//        $res['gamma'] = $d['tilt'];
+        $result[] = $res;
+      }
+    }
+  }
+
+  return $result;
 }
 function get_meter_list_check($db)
 {

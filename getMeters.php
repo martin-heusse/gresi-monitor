@@ -9,18 +9,6 @@ $meters = get_meter_list($db);
 header('Content-Type: application/json');
 // fields: family, serial, name, fisrtts ,lastts, peak_power, timeoffset, betta, gamma, LAT, LONG
 
-// TODO : Temporaire, à enlever quand les données seront disponibles sur la bdd
-$result = array();
-foreach ($meters as $meter) {
-    $meter['betta'] = "15";
-    $meter['gamma'] = "200";
-    $meter['LAT'] = "45";
-    $meter['LONG'] = "5.7";
-    $result[] = $meter;
-}
-echo json_encode($result);
-die;
-
 echo json_encode($meters);
 
 ?>
