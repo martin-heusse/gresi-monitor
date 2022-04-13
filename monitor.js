@@ -202,7 +202,7 @@ function getTheoricOptimalOutput(zc, serialInfo) {
      * @type {{
      *     LONG: number,
      *     LAT: number,
-     *     betta: number,
+     *     betta: number,   
      *     gamma: number,
      *     peak_power: number
      * }} And some other values but not used here
@@ -236,7 +236,7 @@ function getTheoricOptimalOutput(zc, serialInfo) {
             45 * (Math.PI / 180),
             45 * (Math.PI / 180),
             180 * (Math.PI / 180),
-            100,
+            data.peak_power,
             computeDate(ts)
         );
         optimal.push(sr < 0 ? 0 : sr);
