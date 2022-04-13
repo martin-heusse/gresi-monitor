@@ -88,7 +88,12 @@ function get_meter_lastts($serial,$_db){
   $select_messages->execute();
   $res =$select_messages->fetchAll();
   if(!count($res)){
-    $qr = "insert into ".tp."meters values ($serial , '', '', 0, 0, 0, 0)";
+    $qr = "insert into ".tp."metersdata values ('$serial', 0, 0, 0, 0, 0)";
+    echo $qr."\n";
+    $insert_stmt = $_db->prepare($qr);
+    $insert_stmt->execute();
+
+    $qr = "insert into ".tp."meters values ($serial , '$serial', 0, 0, 0)";
     echo "$qr\n";
     $insert_stmt = $_db->prepare($qr);
     $insert_stmt->execute();
@@ -144,9 +149,13 @@ function build_qr_10mn($serial,$startts,$endts){
 }
 
 function update_db_init_meter($serial,$meterInfo,$db){
-  $qr = "UPDATE ".tp."meters set peak_power=?, name=? WHERE serial=$serial";
+  $qr = "UPDATE ".tp."meters set name=? WHERE serial=$serial";
   $update_messages = $db->prepare($qr);
-  $update_messages->execute(array($meterInfo->peakPower,$serial));
+  $update_messages->execute(array($serial));
+
+  $qr = "UPDATE ".tp."metersdata set peak_power=?, name=? WHERE name=?";
+  $update_messages = $db->prepare($qr);
+  $update_messages->execute(array($meterInfo->peakPower,$serial,$serial));
  
   $qr="select serial,min(ts) from monitorreadings where serial=$serial";
   $select_messages = $db->prepare($qr);
