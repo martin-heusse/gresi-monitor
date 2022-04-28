@@ -94,10 +94,10 @@ function get_meter_list($db)
         $res['lastts'] = $meter['lastts'];
         $res['peak_power'] = $d['peak_power'];
         $res['timeoffset'] = $meter['timeoffset'];
-        $res['LONG'] = $d['longitude'];
-        $res['LAT'] = $d['latitude'];
-        $res['betta'] = $d['azimuth'];
-        $res['gamma'] = $d['tilt'];
+        $res['LONG'] = floatval($d['longitude']);
+        $res['LAT'] = floatval($d['latitude']);
+        $res['betta'] = floatval($d['tilt']);
+        $res['gamma'] = floatval($d['azimuth']);
 
         $result[] = $res;
       }

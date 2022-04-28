@@ -190,6 +190,8 @@ function computeSunRadiation(LONG, LAT, betta, gamma, Dh, date) {
  * @param serialInfo Info on the meters
  */
 function getTheoricOptimalOutput(zc, serialInfo) {
+    if (!zc) return;
+
     const computeDate = (ts) => {
         let ed = new Date(ts * 1000);
         let tzOffset = ed.getTimezoneOffset();
@@ -209,30 +211,33 @@ function getTheoricOptimalOutput(zc, serialInfo) {
      */
     const data = metersData[makeMeterKey(serialInfo.family, serialInfo.serial)];
 
-    let theoric = [];
-    myTs.forEach((ts) => {
-        const sr = computeSunRadiation(
-            data.LONG * (Math.PI / 180),
-            data.LAT * (Math.PI / 180),
-            data.betta * (Math.PI / 180),
-            data.gamma * (Math.PI / 180),
-            data.peak_power,
-            computeDate(ts)
-        );
-        theoric.push(sr < 0 ? 0 : sr);
-    });
+    console.log("LONG: " + data.LONG + " LAT: " + data.LAT + " betta: " + data.betta + " gamma: " + data.gamma);
+    if (data.LONG !== 0 && data.LAT !== 0 && data.betta !== 0 && data.gamma !== 0) { // Compute theoric only if we have all the data
+        let theoric = [];
+        myTs.forEach((ts) => {
+            const sr = computeSunRadiation(
+                data.LONG * (Math.PI / 180),
+                data.LAT * (Math.PI / 180),
+                data.betta * (Math.PI / 180),
+                data.gamma * (Math.PI / 180),
+                data.peak_power,
+                computeDate(ts)
+            );
+            theoric.push(sr < 0 ? 0 : sr);
+        });
 
-    zc.zoomChart.data.datasets.push({
-        label: 'Theoric output',
-        fill: false,
-        borderColor: 'grey',
-        data: theoric
-    });
+        zc.zoomChart.data.datasets.push({
+            label: 'Theoric output',
+            fill: false,
+            borderColor: 'grey',
+            data: theoric
+        });
+    }
 
     let optimal = [];
     myTs.forEach((ts) => {
         const sr = computeSunRadiation(
-            5.7,
+            5.7 * (Math.PI / 180),
             45 * (Math.PI / 180),
             45 * (Math.PI / 180),
             180 * (Math.PI / 180),
@@ -333,7 +338,7 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     .fail(function() {
         console.log( "error retrieve");
         dataRetrieved("x",destCtx,zc);
-        getTheoricOptimalOutput(zc, serialInfo);
+        //getTheoricOptimalOutput(zc, serialInfo);
     });
 }
 
