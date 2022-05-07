@@ -88,10 +88,17 @@ function get_meter_lastts($serial,$_db){
   $select_messages->execute();
   $res =$select_messages->fetchAll();
   if(!count($res)){
-    $qr = "insert into ".tp."metersdata values ('$serial', 0, 0, 0, 0, 0)";
-    echo $qr."\n";
-    $insert_stmt = $_db->prepare($qr);
-    $insert_stmt->execute();
+    $qr = "SELECT name from ".tp."metersdata WHERE name='$serial'";
+    $select_messages = $_db->prepare($qr);
+    $select_messages->setFetchMode(PDO::FETCH_KEY_PAIR);
+    $select_messages->execute();
+    $res =$select_messages->fetchAll();
+    if (!count($res)) {
+      $qr = "insert into " . tp . "metersdata values ('$serial', 0, 0, 0, 0, 0)";
+      echo $qr . "\n";
+      $insert_stmt = $_db->prepare($qr);
+      $insert_stmt->execute();
+    }
 
     $qr = "insert into ".tp."meters values ($serial , '$serial', 0, 0, 0)";
     echo "$qr\n";
