@@ -71,40 +71,13 @@ function date_to_str($time){ // Reciprocal of builtin strtotime()
 
 function get_meter_list($db)
 {
-  $qr="select 'rbee' as family, serial, name, fisrtts ,lastts,timeoffset from ".tp."meters  union select 'tic' as family, deveui as serial, name, fisrtts ,lastts, 0 as timeoffset from ".tp."ticmeters union select 'ticpmepmi' as family, deveui as serial, name, fisrtts ,lastts, 0 as timeoffset from ".tp."ticpmepmimeters";
-  $select_messages = $db->prepare($qr);
-  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
-  $select_messages->execute();
-  $meters =  $select_messages->fetchAll();
-  $qr = "select name, longitude, latitude, peak_power, azimuth, tilt from ".tp."metersdata";
-  $select_messages = $db->prepare($qr);
-  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
-  $select_messages->execute();
-  $data = $select_messages->fetchAll();
-  $result = [];
-  // Concatenate meters with data in one array using name as join key
-  foreach ($meters as $meter) {
-    foreach ($data as $d) {
-      if ($meter['name'] == $d['name']) {
-        $res = [];
-        $res['family'] = $meter['family'];
-        $res['serial'] = $meter['serial'];
-        $res['name'] = $meter['name']; // == $data['name']
-        $res['fisrtts'] = $meter['fisrtts'];
-        $res['lastts'] = $meter['lastts'];
-        $res['peak_power'] = $d['peak_power'];
-        $res['timeoffset'] = $meter['timeoffset'];
-        $res['LONG'] = floatval($d['longitude']);
-        $res['LAT'] = floatval($d['latitude']);
-        $res['betta'] = floatval($d['tilt']);
-        $res['gamma'] = floatval($d['azimuth']);
-
-        $result[] = $res;
-      }
-    }
-  }
-
-  return $result;
+    $qr = "select 'rbee' as family, serial, rm.name, fisrtts ,lastts,timeoffset, peak_power, longitude as 'LONG', latitude as LAT, tilt as betta, azimuth as gamma from " . tp . "meters rm join " . tp . "metersdata m on rm.name=m.name 
+    union select 'tic' as family, deveui as serial, tm.name, fisrtts ,lastts, 0 as timeoffset, peak_power, longitude as 'LONG', latitude as LAT, tilt as betta, azimuth as gamma from " . tp . "ticmeters tm  join " . tp . "metersdata m on tm.name=m.name 
+    union select 'ticpmepmi' as family, deveui as serial, tpm.name, fisrtts ,lastts, 0 as timeoffset, peak_power, longitude as 'LONG', latitude as LAT, tilt as betta, azimuth as gamma from " . tp . "ticpmepmimeters tpm join " . tp . "metersdata m on tpm.name=m.name";
+    $select_messages = $db->prepare($qr);
+    $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+    $select_messages->execute();
+    return $select_messages->fetchAll();
 }
 function get_meter_list_orig($db)
 {
