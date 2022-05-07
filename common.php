@@ -72,11 +72,11 @@ function date_to_str($time){ // Reciprocal of builtin strtotime()
 function get_meter_list($db, $min_peak_power=0)
 {
     $qr = "select 'rbee' as family, serial, rm.name, fisrtts ,lastts,timeoffset, peak_power, longitude as 'LONG', latitude as LAT, tilt as betta, azimuth as gamma from " . tp . "meters rm 
-           WHERE peak_power > :peak_power join " . tp . "metersdata m on rm.name=m.name 
+           join " . tp . "metersdata m on rm.name=m.name WHERE peak_power > :peak_power 
     union select 'tic' as family, deveui as serial, tm.name, fisrtts ,lastts, 0 as timeoffset, peak_power, longitude as 'LONG', latitude as LAT, tilt as betta, azimuth as gamma from " . tp . "ticmeters tm 
-          WHERE peak_power > :peak_power join " . tp . "metersdata m on tm.name=m.name 
+          join " . tp . "metersdata m on tm.name=m.name WHERE peak_power > :peak_power 
     union select 'ticpmepmi' as family, deveui as serial, tpm.name, fisrtts ,lastts, 0 as timeoffset, peak_power, longitude as 'LONG', latitude as LAT, tilt as betta, azimuth as gamma from " . tp . "ticpmepmimeters tpm 
-          WHERE peak_power > :peak_power join " . tp . "metersdata m on tpm.name=m.name";
+          join " . tp . "metersdata m on tpm.name=m.name WHERE peak_power > :peak_power";
     $query = $db->prepare($qr);
     $query->bindValue('peak_power', $min_peak_power, PDO::PARAM_INT);
     $query->execute();
