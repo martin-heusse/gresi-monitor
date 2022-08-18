@@ -241,9 +241,9 @@ function get_readings_ticpmepmi($start, $end, $second)
         FROM " . tp . "ticpmepmireadings as tr
         WHERE deveui=@serial AND (tr.ts BETWEEN @ts_start and @ts_end AND !(tr.ts%600))
     UNION
-    SELECT tr.ts-300 as ts, 1000*pi/6 as tprod
-        FROM " . tp . "ticpmepmireadings as tr
-        WHERE deveui=@serial AND (tr.ts-300 BETWEEN @ts_start and @ts_end AND !((tr.ts-300)%600))
+    SELECT tr1.ts+300 as ts, 1000*(tr1.pi+tr2.pi)/2/6 as tprod
+        FROM " . tp . "ticpmepmireadings tr1 inner join " . tp . "ticpmepmireadings tr2 on tr2.ts=tr1.ts-600
+        WHERE tr1.deveui=@serial and tr2.deveui=@serial AND (tr1.ts-300 BETWEEN @ts_start and @ts_end AND !((tr1.ts-300)%600))
     ORDER BY ts) sub group by ts";
 
     // Set variables used in the query
