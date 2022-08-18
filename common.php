@@ -231,16 +231,20 @@ function get_readings_ticpmepmi($start, $end, $second)
     $prepare_variables->setFetchMode(PDO::FETCH_ASSOC);
     $prepare_variables->execute();
 
-    $qr = "-- Add -1 (null) for all missing values over the period
-    SELECT ts AS ts, -1 AS prod
+    $qr = "-- Add -1 (null) for all missing values over the period, and deals with 5mn time shifts. (The max introduces a bias, oh well...)
+    Select ts, max(tprod) as prod from (
+    SELECT ts AS ts, -1 AS tprod
         FROM all_ts
-        WHERE all_ts.ts NOT IN ( SELECT ts FROM " . tp . "ticpmepmireadings WHERE deveui=@serial AND (ts BETWEEN @ts_start AND @ts_end))
     UNION
     -- Select prod values for a device over the period
-    SELECT ts+0 as ts, 1000*pi/6 as prod
+    SELECT ts+0 as ts, 1000*pi/6 as tprod
         FROM " . tp . "ticpmepmireadings as tr
-        WHERE deveui=@serial AND (tr.ts BETWEEN @ts_start and @ts_end)
-    ORDER BY ts;";
+        WHERE deveui=@serial AND (tr.ts BETWEEN @ts_start and @ts_end AND !(tr.ts%600))
+    UNION
+    SELECT tr.ts-300 as ts, 1000*pi/6 as tprod
+        FROM " . tp . "ticpmepmireadings as tr
+        WHERE deveui=@serial AND (tr.ts-300 BETWEEN @ts_start and @ts_end AND !((tr.ts-300)%600))
+    ORDER BY ts) sub group by ts";
 
     // Set variables used in the query
     $prepare_variables = $db->prepare("SET @ts_start = ?;");
@@ -265,7 +269,7 @@ function get_readings_ticpmepmi($start, $end, $second)
     foreach ($readings as $reading) {
         $sum += $reading['prod'];
         $nb++;
-
+        //Output if it's time
         if ((int)$reading['ts'] % $second == 0) {
             if ($nb == $second / 600) {
                 $result[] = [
