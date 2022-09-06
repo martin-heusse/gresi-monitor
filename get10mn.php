@@ -43,9 +43,6 @@ elseif (strcmp($_GET['family'],"tic")==0){
 elseif (strcmp($_GET['family'],"ticpmepmi")==0){
   $reqArgs=array($_GET['serial']);
 
-  $start = $start-$offset;
-  $end = $end-$offset;
-
   // Round start/end to tens minutes in order to match
   // DB when generating missing ts
   $start = 600 * ceil($start / 600);
