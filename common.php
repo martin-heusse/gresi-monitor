@@ -147,7 +147,7 @@ function get_readings_rbee($start, $end, $second)
     // Trigger the query
     $select_messages = $db->prepare($qr);
     $select_messages->setFetchMode(PDO::FETCH_ASSOC);
-    $select_messages->execute($reqArgs);
+    $select_messages->execute();
 
     // Send the content
     return $select_messages->fetchAll();
@@ -260,7 +260,7 @@ function get_readings_ticpmepmi($start, $end, $second)
     // Trigger the query
     $select_messages = $db->prepare($qr);
     $select_messages->setFetchMode(PDO::FETCH_ASSOC);
-    $select_messages->execute($reqArgs);
+    $select_messages->execute();
     $readings = $select_messages->fetchAll();
 
     $result = [];
