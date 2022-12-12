@@ -2,6 +2,7 @@
 require_once "constants.php";
 require_once "ids.php"; // Contains the identifier + Password to connect to RTone web API, + to connect to DB
 require_once "common.php"; 
+require_once "local_mail.php"; 
 
 $db = connect_to_db();
 
@@ -70,7 +71,7 @@ if($tsi!=NULL && $tsf!=NULL){
   }
 }
 if(strlen($update_pb_str)){
-  mail(mailadmin,mailalertsubject,$update_pb_str,prepare_header());
+  local_mail(mailadmin,mailalertsubject,$update_pb_str);
 }
 #Backup msg for later use
 date_default_timezone_set("Europe/Paris");

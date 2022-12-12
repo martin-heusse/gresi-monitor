@@ -54,13 +54,6 @@ function connect_to_db(){
     catch (PDOException $err){echo "<p><b>Echec de connexion a la BD !!!</b></p>";}
 }
 
-function prepare_header(){
-    return "MIME-Version: 1.0\r\n".
-    'Content-Type: text/plain; charset=utf-8'. "\r\n".
-    'X-Mailer: PHP/' . phpversion(). "\r\n";
-}
-
-
 function pace(){
   time_nanosleep(0, 700000000);
 }
