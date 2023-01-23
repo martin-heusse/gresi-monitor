@@ -13,6 +13,6 @@ else {
 
 
 # This variable MUST have a trailing slash character
-define('baseUrl',$protocol.'localhost/~heusse/Monitor/')
+define('baseUrl',$protocol.$_SERVER['HTTP_HOST'].'/')
 
 ?>
