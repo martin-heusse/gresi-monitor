@@ -108,7 +108,7 @@ foreach($res as $cur_res){
     print_r($ts);print("\n");
   }
 //  update fisrtts, lastts
-  $qr = "update ".tp."ticmeters set fisrtts=(select min(ts) from ".tp."ticreadings where deveui=$dec_eui) where deveui=$dec_eui";
+  $qr = "update ".tp."ticmeters set fisrtts=(select min(ts) from ".tp."ticreadings where deveui=$dec_eui) where deveui=$dec_eui and fisrtts is null";
   $select_messages = $db->prepare($qr);
   $select_messages->execute();
   $qr = "update ".tp."ticmeters set lastts=(select max(ts) from ".tp."ticreadings where deveui=$dec_eui) where deveui=$dec_eui";
@@ -176,7 +176,7 @@ foreach($res as $cur_res){
     }
   }
 //  update fisrtts, lastts
-  $qr = "update ".tp."ticpmepmimeters set fisrtts=(select min(ts) from ".tp."ticpmepmireadings where deveui=$dec_eui) where deveui=$dec_eui";
+  $qr = "update ".tp."ticpmepmimeters set fisrtts=(select min(ts) from ".tp."ticpmepmireadings where deveui=$dec_eui) where deveui=$dec_eui and fisrtts is null";
   $select_messages = $db->prepare($qr);
   $select_messages->execute();
   $qr = "update ".tp."ticpmepmimeters set lastts=(select max(ts) from ".tp."ticpmepmireadings where deveui=$dec_eui) where deveui=$dec_eui";
