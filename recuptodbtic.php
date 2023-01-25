@@ -161,7 +161,7 @@ foreach($res as $cur_res){
       for($i=0;$i<6;$i++){
         $t=$dat_date-$i*10*60; //Go back in time 10mn for each data
         $pi = hexdec(substr($p, 44+$i*4,4));
-        $insert_stmt_pi->execute(array($dec_eui,$t,$pi));
+        if(!$insert_stmt_pi->execute(array($dec_eui,$t,$pi))){$more_data=FALSE;}
       }
       // update $to_date for next query, before rounding it for index storage
       $t=strtotime($ts);
