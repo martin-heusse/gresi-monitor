@@ -63,20 +63,21 @@ function get_tic_pmepmi_prod($db , $serial, $date_start, $date_end) {
 //     $readings = $query->fetchAll(PDO::FETCH_ASSOC);
 //     error_log(print_r($readings, TRUE)); 
     
-    $sql="SELECT MAX(eait) AS max_eait FROM ".tp."ticpmepmiindex
+    $sql="SELECT MAX(eait) AS max_eait, MIN(eait) AS min_eait FROM ".tp."ticpmepmiindex
             WHERE deveui=:serial AND
-            UNIX_TIMESTAMP(date) < :ts_end+4*3600
+            UNIX_TIMESTAMP(date) BETWEEN :ts_start AND :ts_end
             GROUP BY ptcour";
             
     $query = $db->prepare($sql);
     $query->bindValue('serial', $serial, PDO::PARAM_STR);
-    $query->bindValue('ts_end', $date_start->getTimestamp(), PDO::PARAM_INT);
+    $query->bindValue('ts_start', $date_start->getTimestamp(), PDO::PARAM_INT);
+    $query->bindValue('ts_end', $date_end->getTimestamp(), PDO::PARAM_INT);
     $query->execute();
     $readings = $query->fetchAll(PDO::FETCH_ASSOC);
-    $eait1=0;
+    $prod=0;
     foreach ($readings as $reading) {
-//       error_log(print_r($reading, TRUE)); 
-      $eait1+=$reading['max_eait'];
+      // error_log(print_r($reading, TRUE)); 
+      $prod+=$reading['max_eait']-$reading['min_eait'];
     }
     
     $query->bindValue('ts_end', $date_end->getTimestamp(), PDO::PARAM_INT);
@@ -90,8 +91,7 @@ function get_tic_pmepmi_prod($db , $serial, $date_start, $date_end) {
       $eait2+=$reading['max_eait'];
     }
 
-    // echo $serial, " - ", $date_start->getTimestamp(), " - ", $date_end->getTimestamp(), "<br>";
-    return is_null($eait1)? 0 : 1000 * ($eait2-$eait1); 
+    return 1000 * ($prod);
 }
 
 ?>
