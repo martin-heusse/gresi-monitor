@@ -64,27 +64,54 @@ function date_to_str($time){ // Reciprocal of builtin strtotime()
 
 function get_meter_list($db, $min_peak_power=0)
 {
-  $sql = "SELECT 'rbee' AS family, serial, name, fisrtts ,lastts, peak_power,timeoffset FROM ".tp."meters
-              WHERE peak_power > :peak_power
-          UNION SELECT 'tic' AS family, deveui AS serial, name, fisrtts ,lastts, peak_power, 0 AS timeoffset FROM ".tp."ticmeters
-              WHERE peak_power > :peak_power
-          UNION SELECT 'ticpmepmi' AS family, deveui AS serial, name, fisrtts ,lastts, peak_power, 0 AS timeoffset FROM ".tp."ticpmepmimeters
-              WHERE peak_power > :peak_power";
+    $qr = "select 'rbee' as family, serial, rm.name, fisrtts ,lastts,timeoffset, peak_power, longitude as 'LONG', latitude as LAT, tilt as betta, azimuth as gamma from " . tp . "meters rm 
+           join " . tp . "metersdata m on rm.name=m.name WHERE peak_power > :peak_power 
+    union select 'tic' as family, deveui as serial, tm.name, fisrtts ,lastts, 0 as timeoffset, peak_power, longitude as 'LONG', latitude as LAT, tilt as betta, azimuth as gamma from " . tp . "ticmeters tm 
+          join " . tp . "metersdata m on tm.name=m.name WHERE peak_power > :peak_power 
+    union select 'ticpmepmi' as family, deveui as serial, tpm.name, fisrtts ,lastts, 0 as timeoffset, peak_power, longitude as 'LONG', latitude as LAT, tilt as betta, azimuth as gamma from " . tp . "ticpmepmimeters tpm 
+          join " . tp . "metersdata m on tpm.name=m.name WHERE peak_power > :peak_power";
+    $query = $db->prepare($qr);
+    $query->bindValue('peak_power', $min_peak_power, PDO::PARAM_INT);
+    $query->execute();
   
-  $query = $db->prepare($sql);
-  $query->bindValue('peak_power', $min_peak_power, PDO::PARAM_INT);
-  $query->execute();
-
-  return $query->fetchAll(PDO::FETCH_ASSOC);
+    return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
 function get_meter_list_orig($db)
 {
-  $qr="select 'rbee' as family, serial, name, fisrtts ,lastts, peak_power,timeoffset from ".tp."meters where serial not in (select replacedby from ".tp."disabled where replacedby is not null) union select 'tic' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticmeters where fisrtts>0 union select 'ticpmepmi' as family, deveui as serial, name, fisrtts ,lastts, peak_power, 0 as timeoffset from ".tp."ticpmepmimeters where fisrtts>0 order by name";
+  $qr="select 'rbee' as family, serial, name, fisrtts ,lastts,timeoffset from ".tp."meters where serial not in (select replacedby from ".tp."disabled where replacedby is not null) union select 'tic' as family, deveui as serial, name, fisrtts ,lastts, 0 as timeoffset from ".tp."ticmeters where fisrtts>0 union select 'ticpmepmi' as family, deveui as serial, name, fisrtts ,lastts, 0 as timeoffset from ".tp."ticpmepmimeters where fisrtts>0 order by name";
   $select_messages = $db->prepare($qr);
   $select_messages->setFetchMode(PDO::FETCH_ASSOC);
   $select_messages->execute();
-  return $select_messages->fetchAll();
+  $meters =  $select_messages->fetchAll();
+  $qr = "select name, longitude, latitude, peak_power, azimuth, tilt from ".tp."metersdata";
+  $select_messages = $db->prepare($qr);
+  $select_messages->setFetchMode(PDO::FETCH_ASSOC);
+  $select_messages->execute();
+  $data = $select_messages->fetchAll();
+  $result = [];
+  // Concatenate meters with data in one array using name as join key
+  foreach ($meters as $meter) {
+    foreach ($data as $d) {
+      if ($meter['name'] == $d['name']) {
+        $res = [];
+        $res['family'] = $meter['family'];
+        $res['serial'] = $meter['serial'];
+        $res['name'] = $meter['name']; // == $data['name']
+        $res['fisrtts'] = $meter['fisrtts'];
+        $res['lastts'] = $meter['lastts'];
+        $res['peak_power'] = $d['peak_power'];
+        $res['timeoffset'] = $meter['timeoffset'];
+//        $res['LONG'] = $d['longitude']; useless
+//        $res['LAT'] = $d['latitude'];
+//        $res['betta'] = $d['azimuth'];
+//        $res['gamma'] = $d['tilt'];
+        $result[] = $res;
+      }
+    }
+  }
+
+  return $result;
 }
 function get_meter_list_check($db)
 {

@@ -1,5 +1,6 @@
 let nbMeterDone=0,nbMeters=0,nbMetersOK=0;
 let myLabels=[];
+let myTs=[];
 let myData=[];
 let zc={zoomChart:null}; // holds the pointer to the zoom chart object, to destroy it when needed
 let mc={mainChart:null}; // holds the pointer to the main chart object
@@ -9,6 +10,7 @@ let endDate=null;
 let nbProdDone=0;nbProd=0;totalProdMonth=0
 let prodArray=[];
 let prodString="";
+let metersData=[];
 
 let zoomNbDays=0.7;
 let mainNbDays=7;
@@ -70,6 +72,7 @@ function retrieveMeters(listLoc,dataLoc) {
                 nbMeters++;
                 meterNames[makeMeterKey(result[i].family,result[i].serial)]=result[i].name;
                 peakPower[result[i].serial]=result[i].peak_power;
+                metersData[makeMeterKey(result[i].family,result[i].serial)]=result[i];
                 lasttsCorrected= parseInt(result[i].lastts)+ parseInt(result[i].timeoffset);
                 if (lasttsCorrected>lastTsInData) lastTsInData=lasttsCorrected;
                 setTimeout(retrieveData, i*1,result[i],dataLoc,destCtx,null);  // setTimeout paces the calls to the web API, here each ms
@@ -133,6 +136,127 @@ function colIndexFor(serialString){
     return namesArray.sort().indexOf(meterNames[serialString]);
 }
 
+/**
+ * Compute the sun radiation for a given solar panel at a given time
+ *
+ * @param LONG {number} longitude of the location
+ * @param LAT {number} latitude of the location
+ * @param betta {number} inclination of the panel
+ * @param gamma {number} azimuth of the panel
+ * @param Dh {number} optimal irradiance of the panel
+ * @param date {Date} date of the calculation
+ * @returns {number} the radiation
+ */
+function computeSunRadiation(LONG, LAT, betta, gamma, Dh, date) {
+    // Get current hours (H) and minutes (m)
+    const H = date.getHours();
+    const m = date.getMinutes();
+
+    // Get number of days passed since the beginning of the year
+    const begin = new Date(date.getFullYear(), 0, 1);
+    const d = Math.trunc((date - begin) / 86_400_000); // 3600 * 24 * 1000
+
+    // Compute earth declination (delta)
+    const delta = 23.45 * (Math.PI / 180) * Math.sin(
+        2 * Math.PI * ((284 + d) / 36.25)
+    );
+
+    // Compute local solar time (LST)
+    const dTUTC = date.getTimezoneOffset() / 60.0;
+    const LSTM = (15 * dTUTC) * (Math.PI / 180);
+    const B = ((2 * Math.PI) / 365) * (d - 81);
+    const EOT = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+    const TC = 4 * (LONG - LSTM) + EOT;
+    const LST = date.valueOf() / 1000 + TC / 60;
+
+    // Compute hour angle (AH)
+    const AH = (15 * ((LST / 3600) - 12)) * (Math.PI / 180);
+
+    // Compute incidence angle (alpha)
+    const alpha = Math.acos(
+        (Math.sin(delta) * Math.sin(LAT) * Math.cos(betta)) +
+        (Math.sin(delta) * Math.cos(LAT) * Math.sin(betta) * Math.cos(gamma)) +
+        (Math.cos(delta) * Math.cos(LAT) * Math.cos(betta) * Math.cos(AH)) -
+        (Math.cos(delta) * Math.sin(LAT) * Math.sin(betta) * Math.cos(gamma) * Math.cos(AH)) -
+        (Math.cos(delta) * Math.sin(betta) * Math.sin(gamma) * Math.sin(AH))
+    );
+
+    return Math.cos(alpha) * Dh;
+}
+
+/**
+ *
+ * @param zc The chart
+ * @param serialInfo Info on the meters
+ */
+function getTheoricOptimalOutput(zc, serialInfo) {
+    if (!zc) return;
+
+    const computeDate = (ts) => {
+        let ed = new Date(ts * 1000);
+        let tzOffset = ed.getTimezoneOffset();
+        ed = ed.valueOf() + (tzOffset * 60 * 1000);
+        return new Date(ed);
+    };
+
+    // Retrieve data of meters
+    /**
+     * @type {{
+     *     LONG: number,
+     *     LAT: number,
+     *     betta: number,   
+     *     gamma: number,
+     *     peak_power: number
+     * }} And some other values but not used here
+     */
+    const data = metersData[makeMeterKey(serialInfo.family, serialInfo.serial)];
+
+    console.log("LONG: " + data.LONG + " LAT: " + data.LAT + " betta: " + data.betta + " gamma: " + data.gamma);
+    if (data.LONG !== 0 && data.LAT !== 0 && data.betta !== 0 && data.gamma !== 0) { // Compute theoric only if we have all the data
+        let theoric = [];
+        myTs.forEach((ts) => {
+            const sr = computeSunRadiation(
+                data.LONG * (Math.PI / 180),
+                data.LAT * (Math.PI / 180),
+                data.betta * (Math.PI / 180),
+                data.gamma * (Math.PI / 180),
+                data.peak_power,
+                computeDate(ts)
+            );
+            theoric.push(sr < 0 ? 0 : sr);
+        });
+
+        zc.zoomChart.data.datasets.push({
+            label: 'Theoric output',
+            fill: false,
+            borderColor: 'grey',
+            data: theoric
+        });
+    }
+
+    let optimal = [];
+    myTs.forEach((ts) => {
+        const sr = computeSunRadiation(
+            5.7 * (Math.PI / 180),
+            45 * (Math.PI / 180),
+            45 * (Math.PI / 180),
+            180 * (Math.PI / 180),
+            data.peak_power,
+            computeDate(ts)
+        );
+        optimal.push(sr < 0 ? 0 : sr);
+    });
+
+    zc.zoomChart.data.datasets.push({
+        label: 'Optimal output',
+        fill: false,
+        borderColor: 'green',
+        data: optimal
+    });
+
+    zc.zoomChart.update();
+}
+
 function retrieveData(serialInfo,dataLoc,destCtx,zc) {
     let serialNum=serialInfo.serial;
     let family=serialInfo.family;
@@ -162,13 +286,17 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
             // Process the data that was just fetched
             let ithMeterData=[];
             let colIndex=colIndexFor(makeMeterKey(family, serialNum));
-            if(myLabels.length<result.length) // only override labels if more data in this set
-                myLabels=[];
+            if(myLabels.length<result.length) { // only override labels if more data in this set
+                myLabels = [];
+                myTs = [];
+            }
             if(zc || !$("#radio1h").prop( "checked" ))
               result=adjustTime(result);
             result.forEach(function(item) {
-                if(myLabels.length<result.length)
+                if(myLabels.length<result.length) {
                     myLabels.push(convertTS(item.ts)); // overriding previous ones, if there is more data
+                    myTs.push(item.ts);
+                }
                 wToWc=(!zc)?1/peakPower[serialNum]:1; // W / Wc in main  graph, kW in the other
                 if(item.prod>=0)ithMeterData.push(Math.round(item.prod*whToW*wToWc)/1000);
                 else ithMeterData.push(null);
@@ -205,10 +333,12 @@ function retrieveData(serialInfo,dataLoc,destCtx,zc) {
         }
         nbMetersOK++;
         dataRetrieved("+",destCtx,zc);
+        getTheoricOptimalOutput(zc, serialInfo);
     })
     .fail(function() {
         console.log( "error retrieve");
         dataRetrieved("x",destCtx,zc);
+        //getTheoricOptimalOutput(zc, serialInfo);
     });
 }
 

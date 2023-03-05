@@ -24,16 +24,20 @@ echo "</form>";
 
 if (isset($_POST['create_base'])){
     foreach(array(
-    "create table IF NOT EXISTS ".tp."meters ( serial integer unsigned primary key, name varchar(256) not null, localization varchar(512), fisrtts integer unsigned, lastts integer unsigned, peak_power float not null, timeoffset integer default 0)",
+    "create table IF NOT EXISTS ".tp."meters ( serial integer unsigned primary key, name varchar(256) not null unique, fisrtts integer unsigned, lastts integer unsigned, timeoffset integer default 0 )",
      "create table IF NOT EXISTS ".tp."readings ( serial integer unsigned, ts integer unsigned not null, prod float not null, constraint ".tp."ref_serial foreign key (serial) references ".tp."meters(serial), primary key(serial,ts))",
      "create table IF NOT EXISTS ".tp."irrad ( serial integer unsigned, ts integer unsigned not null, prod float not null, irrad float not null, constraint ".tp."ref_serial1 foreign key (serial) references ".tp."meters(serial), primary key(serial,ts))",
      "create table IF NOT EXISTS ".tp."disabled ( serial integer unsigned )",
      "alter table ".tp."disabled add constraint ".tp."ref_serial2 foreign key (serial) references ".tp."meters(serial), add column replacedby integer unsigned, add constraint ".tp."ref_serial3 foreign key (replacedby) references ".tp."meters(serial)",
-     "create table IF NOT EXISTS ".tp."ticmeters ( deveui bigint unsigned, name varchar(256) not null, fisrtts integer unsigned, lastts integer unsigned, peak_power float not null, primary key(deveui))",
+     "create table IF NOT EXISTS ".tp."ticmeters ( deveui bigint unsigned, name varchar(256) not null unique, fisrtts integer unsigned, lastts integer unsigned, primary key(deveui))",
      "create table IF NOT EXISTS ".tp."ticreadings ( deveui bigint unsigned, ts integer unsigned not null, eait integer not null, east integer not null, constraint ".tp."ref_eui foreign key (deveui) references ".tp."ticmeters(deveui), primary key(deveui,ts))",
-     "create table IF NOT EXISTS ".tp."ticpmepmimeters ( deveui bigint unsigned, name varchar(256) not null, fisrtts integer unsigned, lastts integer unsigned, peak_power float not null, primary key(deveui))",
+     "create table IF NOT EXISTS ".tp."ticpmepmimeters ( deveui bigint unsigned, name varchar(256) not null unique, fisrtts integer unsigned, lastts integer unsigned, primary key(deveui))",
      "create table IF NOT EXISTS ".tp."ticpmepmireadings ( deveui bigint unsigned, ts integer unsigned not null, pi integer not null, constraint ".tp."ref_p_eui foreign key (deveui) references ".tp."ticpmepmimeters(deveui), primary key(deveui,ts))",
      "create table IF NOT EXISTS ".tp."ticpmepmiindex( deveui bigint unsigned, date DATE not null, ptcour int unsigned not null, eait integer not null, east integer not null, constraint ".tp."ref_i_eui foreign key (deveui) references ".tp."ticpmepmimeters(deveui), primary key(deveui,ptcour,date))",
+     "create table IF NOT EXISTS ".tp."metersdata ( name varchar(256) primary key, longitude float not null, latitude float not null, peak_power float not null, azimuth float not null, tilt float not null )",
+     "alter table ".tp."meters add constraint fk_meters_data foreign key (name) references ".tp."metersdata(name)",
+     "alter table ".tp."ticmeters add constraint fk_ticmeters_data foreign key (name) references ".tp."metersdata(name)",
+     "alter table ".tp."ticpmepmimeters add constraint fk_ticpmepmimeters_data foreign key (name) references ".tp."metersdata(name)",
 
         ) as $qr){
         echo $qr."<br>";
@@ -53,6 +57,7 @@ if (isset($_POST['create_base'])){
     $status = (check_table($db,"ticpmepmimeters") && $status);
     $status = (check_table($db,"ticpmepmireadings") && $status);
     $status = (check_table($db,"ticpmepmiindex") && $status);
+    $status = (check_table($db,"metersdata") && $status);
 
     if ($status === true) {
         echo "<h2>Tables successfully created !</h2>";
