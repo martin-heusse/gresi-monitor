@@ -428,7 +428,7 @@ function retrieveRef(zc){
     let myUrl=dataLoc+"?family="+serialFamily+"&serial="+serialNum+"&start="+(ts-nbDays*24*3600)+"&end="+ts;
     $.getJSON(myUrl, function(result){
             chartData=zc.zoomChart.data;
-            console.log("chartdatalenght="+chartData.labels.length)
+            console.log("chartdatalenght="+chartData.labels.length);
             //console.log(chartData); //chartData.labels chartData.datasets[]
 //             console.log(result); //chartData.labels chartData.datasets[]
             refData=[];
@@ -462,6 +462,9 @@ function displayMonthly(endDate,meterList){
                 if(result[x]>0){
                   prodArray.push({name:meterNames[x],prod:Math.round(result[x]/1000)});
                   totalProdMonth+=result[x]/1000;
+                }
+                else{
+                  prodArray.push({name:meterNames[x],prod:"XXX"});
                 }
             }
             nbProdDone++;
