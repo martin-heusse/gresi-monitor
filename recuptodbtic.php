@@ -3,7 +3,7 @@ require_once "constants.php";
 require_once "ids.php"; // Contains the identifier + Password to connect to RTone web API, + to connect to DB
 require_once "common.php"; 
 
-$initialNbWeeks = 2; // if 0, retrieve from first meter connection. Otherwise, just get last $initialNbWeeks weeks
+$initialNbWeeks = 0; // if 0, retrieve from first meter connection. Otherwise, just get last $initialNbWeeks weeks
 
 $db = connect_to_db();
 if(is_null($db)) exit;
@@ -124,11 +124,16 @@ $select_messages->setFetchMode(PDO::FETCH_ASSOC);
 $select_messages->execute();
 $res =$select_messages->fetchAll();
 
-$qr_insert_pi="insert into ".tp."ticpmepmireadings values (? , ?, ?)"; //deveui as int, ts , mean_power
+$qr_insert_pi="insert ignore into ".tp."ticpmepmireadings values (? , ?, ?)"; //deveui as int, ts , mean_power
 $insert_stmt_pi = $db->prepare($qr_insert_pi);
-$qr_insert_index="insert into ".tp."ticpmepmiindex values (? ,  STR_TO_DATE(?, '%Y-%m-%e'), ?, ?, ?)"; //deveui as int, date , eait, east
+$qr_insert_index="insert ignore into ".tp."ticpmepmiindex values (? ,  STR_TO_DATE(?, '%Y-%m-%e'), ?, ?, ?)"; //deveui as int, date , eait, east /// ON DUPLICATE KEY UPDATE eait=?
 $insert_stmt_index = $db->prepare($qr_insert_index);
 
+if($initialNbWeeks>0){
+  $hist_limit=mktime(0, 0, 0, date("m"), date("d")-7*$initialNbWeeks,   date("Y"));
+}
+else{$hist_limit=mktime(0, 0, 0, 1,1,2000);}
+print($hist_limit."\n");
 foreach($res as $cur_res){
   $dec_eui=$cur_res['deveui'];
   $hex_eui=convbase($dec_eui,'0123456789','0123456789ABCDEF');
@@ -137,7 +142,8 @@ foreach($res as $cur_res){
   print("to_date:".$to_date);print("\n");
   $from_date=t_str_chg(date(DateTime::ISO8601,strtotime("2000-01-01")));
   print("from_date:".$from_date); print "\n";
-  while($more_data){
+  while($more_data && strtotime($to_date)>$hist_limit){
+    print('ktime(strtotime($to_date)) : '.strtotime($to_date)."\n");
     $httpreq=build_qr($hex_eui,$from_date,$to_date);
     print($httpreq."\n");
     $r=json_decode(file_get_contents_lo($httpreq));

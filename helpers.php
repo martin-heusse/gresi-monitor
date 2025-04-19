@@ -63,34 +63,35 @@ function get_tic_pmepmi_prod($db , $serial, $date_start, $date_end) {
 //     $readings = $query->fetchAll(PDO::FETCH_ASSOC);
 //     error_log(print_r($readings, TRUE)); 
     
-    $sql="SELECT MAX(eait) AS max_eait, MIN(eait) AS min_eait FROM ".tp."ticpmepmiindex
-            WHERE deveui=:serial AND
-            UNIX_TIMESTAMP(date) BETWEEN :ts_start AND :ts_end
-            GROUP BY ptcour";
-            
+//     $sql="SELECT MAX(eait) AS max_eait, MIN(eait) AS min_eait FROM ".tp."ticpmepmiindex
+//             WHERE deveui=:serial AND
+//             UNIX_TIMESTAMP(date) BETWEEN :ts_start AND :ts_end
+//             GROUP BY ptcour";
+
+    // Sum of all indexes seen befor time :mts
+    $sql="select mpidx.ptcour as pt,eait from ".tp."ticpmepmiindex mpidx,(select max(date) as maxdat, ptcour,deveui  from ".tp."ticpmepmiindex where deveui = :serial and date<:mdate group by ptcour) maxdatept where mpidx.date=maxdatept.maxdat and mpidx.ptcour=maxdatept.ptcour  and mpidx.deveui=maxdatept.deveui;";
     $query = $db->prepare($sql);
     $query->bindValue('serial', $serial, PDO::PARAM_STR);
-    $query->bindValue('ts_start', $date_start->getTimestamp(), PDO::PARAM_INT);
-    $query->bindValue('ts_end', $date_end->getTimestamp(), PDO::PARAM_INT);
+    $query->bindValue('mdate', $date_end->format('Y-m-d'), PDO::PARAM_STR);
     $query->execute();
-    $readings = $query->fetchAll(PDO::FETCH_ASSOC);
+    $readings_end = $query->fetchAll(PDO::FETCH_ASSOC);
+    
+    $query->bindValue('mdate', $date_start->format('Y-m-d'), PDO::PARAM_STR);
+    $query->execute();
+    $readings_start = $query->fetchAll(PDO::FETCH_KEY_PAIR);
     $prod=0;
-    foreach ($readings as $reading) {
-      // error_log(print_r($reading, TRUE)); 
-      $prod+=$reading['max_eait']-$reading['min_eait'];
+    foreach ($readings_end as $re){//iterate over pt
+//       print_r($re['pt']."  ".$re['eait']."  ".$readings_start[$re['pt']]."   ");
+      if(array_key_exists($re['pt'],$readings_start))
+        $prodapp=$re['eait']-$readings_start[$re['pt']];
+      else $prodapp=$re['eait'];
+      if($prodapp>=0){
+        $prod=$prod+$prodapp ;
+      }
+      else{$prod=$prod+$re['eait'];}// negative prod : probably due to meter change !
+//       print_r("prod:".$prod."  /  ");
     }
     
-    $query->bindValue('ts_end', $date_end->getTimestamp(), PDO::PARAM_INT);
-    $query->execute();
-    $readings = $query->fetchAll(PDO::FETCH_ASSOC);
-
-
-    $eait2=0;
-    foreach ($readings as $reading) {
-//       error_log(print_r($reading, TRUE)); 
-      $eait2+=$reading['max_eait'];
-    }
-
     return 1000 * ($prod);
 }
 
