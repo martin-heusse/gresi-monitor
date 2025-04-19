@@ -68,7 +68,7 @@ function retrieveMeters(listLoc,dataLoc) {
             // Select the meters with a name matching the requested ones (or all meters if empty list)
             if(metersToShow[0].length==0 || metersToShow.findIndex(function(cur){return result[i].name.search(cur)>=0})>=0){
                 nbMeters++;
-                meterNames[makeMeterKey(result[i].family,result[i].serial)]=result[i].name;
+                meterNames[makeMeterKey(result[i].family,BigInt(result[i].serial))]=result[i].name;
                 peakPower[result[i].serial]=result[i].peak_power;
                 lasttsCorrected= parseInt(result[i].lastts)+ parseInt(result[i].timeoffset);
                 if (lasttsCorrected>lastTsInData) lastTsInData=lasttsCorrected;

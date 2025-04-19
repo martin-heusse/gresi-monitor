@@ -74,8 +74,11 @@ function get_meter_list($db, $min_peak_power=0)
   $query = $db->prepare($sql);
   $query->bindValue('peak_power', $min_peak_power, PDO::PARAM_INT);
   $query->execute();
-
-  return $query->fetchAll(PDO::FETCH_ASSOC);
+  $res=$query->fetchAll(PDO::FETCH_ASSOC);
+  for ($i = 0; $i < count($res); $i++) {
+    $res[$i]['serial']=strval($res[$i]['serial']);
+  }
+  return $res;
 }
 
 function get_meter_list_orig($db)
