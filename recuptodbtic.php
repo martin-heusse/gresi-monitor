@@ -3,7 +3,7 @@ require_once "constants.php";
 require_once "ids.php"; // Contains the identifier + Password to connect to RTone web API, + to connect to DB
 require_once "common.php"; 
 
-$initialNbWeeks = 0; // if 0, retrieve from first meter connection. Otherwise, just get last $initialNbWeeks weeks
+$initialNbWeeks = 1; // if 0, retrieve from first meter connection. Otherwise, just get last $initialNbWeeks weeks
 
 $db = connect_to_db();
 if(is_null($db)) exit;
