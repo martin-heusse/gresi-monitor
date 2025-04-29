@@ -10,37 +10,6 @@ if(is_null($db)) exit;
 
 date_default_timezone_set("UTC");
 
-function convBase($numberInput, $fromBaseInput, $toBaseInput)
-{
-    if ($fromBaseInput==$toBaseInput) return $numberInput;
-    $fromBase = str_split($fromBaseInput,1);
-    $toBase = str_split($toBaseInput,1);
-    $number = str_split($numberInput,1);
-    $fromLen=strlen($fromBaseInput);
-    $toLen=strlen($toBaseInput);
-    $numberLen=strlen($numberInput);
-    $retval='';
-    if ($toBaseInput == '0123456789')
-    {
-        $retval=0;
-        for ($i = 1;$i <= $numberLen; $i++)
-            $retval = bcadd($retval, bcmul(array_search($number[$i-1], $fromBase),bcpow($fromLen,$numberLen-$i)));
-        return $retval;
-    }
-    if ($fromBaseInput != '0123456789')
-        $base10=convBase($numberInput, $fromBaseInput, '0123456789');
-    else
-        $base10 = $numberInput;
-    if ($base10<strlen($toBaseInput))
-        return $toBase[$base10];
-    while($base10 != '0')
-    {
-        $retval = $toBase[bcmod($base10,$toLen)].$retval;
-        $base10 = bcdiv($base10,$toLen,0);
-    }
-    return $retval;
-}
-
 function build_qr($hex_eui,$from,$to){
   $args=array();
 //   $args=base_args();
@@ -74,13 +43,13 @@ $select_messages->setFetchMode(PDO::FETCH_ASSOC);
 $select_messages->execute();
 $res =$select_messages->fetchAll();
 
-$qr_insert="insert into ".tp."ticreadings values (? , ?, ?, ?)"; //deveui as int, ts , eait , east
+$qr_insert="insert ignore into ".tp."ticreadings values (? , ?, ?, ?)"; //deveui as int, ts , eait , east
 $insert_stmt = $db->prepare($qr_insert);
 
 // loop on meters
 foreach($res as $cur_res){
   $dec_eui=$cur_res['deveui'];
-  $hex_eui=convbase($dec_eui,'0123456789','0123456789ABCDEF');
+  $hex_eui=sprintf("%'016X",$dec_eui);
   $more_data=TRUE;
   $to_date=t_str_chg(date(DateTime::ISO8601));
   print($to_date);print("\n");
@@ -101,6 +70,18 @@ foreach($res as $cur_res){
       $eait=1.0*hexdec(substr($p, -10,8));
       $east=1.0*hexdec(substr($p, -18,8));
       $t=strtotime($ts);
+      if($t<strtotime($to_date)) {$to_date=$ts;}
+      // inserting will fail if data already exists.
+      if(!$insert_stmt->execute(array($dec_eui,$t,$eait,$east))){$more_data=FALSE;}
+    }
+    print_r($p_data);
+    $data_ok=preg_grep("/^49/",$p_data);// Adeunis
+    if(count($data_ok)==0) $more_data=(FALSE || $more_data);
+    foreach($data_ok as $ts=>$p){//loop on packets
+      $eait=1.0*hexdec(substr($p, -16,8));
+      $east=1.0*hexdec(substr($p, -8,8));
+      $t=strtotime($ts);
+//       print_r($ts."  ".$eait."  ".$east." ".$t."\n");
       if($t<strtotime($to_date)) {$to_date=$ts;}
       // inserting will fail if data already exists.
       if(!$insert_stmt->execute(array($dec_eui,$t,$eait,$east))){$more_data=FALSE;}
@@ -136,7 +117,7 @@ else{$hist_limit=mktime(0, 0, 0, 1,1,2000);}
 print($hist_limit."\n");
 foreach($res as $cur_res){
   $dec_eui=$cur_res['deveui'];
-  $hex_eui=convbase($dec_eui,'0123456789','0123456789ABCDEF');
+  $hex_eui=sprintf("%'016X",$dec_eui);
   $more_data=TRUE;
   $to_date=t_str_chg(date(DateTime::ISO8601));
   print("to_date:".$to_date);print("\n");
@@ -159,7 +140,6 @@ foreach($res as $cur_res){
       foreach($data_ok as $ts=>$p){//loop on packets
       $str_day=hexdec(substr($p, 32,2));
       $str_month=hexdec(substr($p, 34,2));
-      $str_year=hexdec(substr($p, 36,2));
       $str_year=hexdec(substr($p, 36,2));
       $str_h=hexdec(substr($p, 38,2));
       $str_mn=hexdec(substr($p, 40,2));
