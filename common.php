@@ -50,7 +50,7 @@ function header_form($filename){
 
 function connect_to_db(){
     $db_url="mysql:host=".db_host.";dbname=".db_name.";charset=utf8";
-    try{return new PDO($db_url,db_username,db_pwd);}
+    try{return new PDO($db_url,db_username,db_pwd,array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT));}
     catch (PDOException $err){echo "<p><b>Echec de connexion a la BD !!!</b></p>";}
 }
 

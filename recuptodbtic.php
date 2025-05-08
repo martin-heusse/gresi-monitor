@@ -43,7 +43,7 @@ $select_messages->setFetchMode(PDO::FETCH_ASSOC);
 $select_messages->execute();
 $res =$select_messages->fetchAll();
 
-$qr_insert="insert ignore into ".tp."ticreadings values (? , ?, ?, ?)"; //deveui as int, ts , eait , east
+$qr_insert="insert into ".tp."ticreadings values (? , ?, ?, ?)"; //deveui as int, ts , eait , east
 $insert_stmt = $db->prepare($qr_insert);
 
 // loop on meters
@@ -105,9 +105,9 @@ $select_messages->setFetchMode(PDO::FETCH_ASSOC);
 $select_messages->execute();
 $res =$select_messages->fetchAll();
 
-$qr_insert_pi="insert ignore into ".tp."ticpmepmireadings values (? , ?, ?)"; //deveui as int, ts , mean_power
+$qr_insert_pi="insert into ".tp."ticpmepmireadings values (? , ?, ?)"; //deveui as int, ts , mean_power
 $insert_stmt_pi = $db->prepare($qr_insert_pi);
-$qr_insert_index="insert ignore into ".tp."ticpmepmiindex values (? ,  STR_TO_DATE(?, '%Y-%m-%e'), ?, ?, ?)"; //deveui as int, date , eait, east /// ON DUPLICATE KEY UPDATE eait=?
+$qr_insert_index="insert into ".tp."ticpmepmiindex values (? ,  STR_TO_DATE(?, '%Y-%m-%e'), ?, ?, ?)"; //deveui as int, date , eait, east /// ON DUPLICATE KEY UPDATE eait=?
 $insert_stmt_index = $db->prepare($qr_insert_index);
 
 if($initialNbWeeks>0){
