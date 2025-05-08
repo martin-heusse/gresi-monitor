@@ -50,6 +50,8 @@ $insert_stmt = $db->prepare($qr_insert);
 foreach($res as $cur_res){
   $dec_eui=$cur_res['deveui'];
   $hex_eui=sprintf("%'016X",$dec_eui);
+  if(!(preg_match('/^70B3D5/',$hex_eui) || preg_match('/^0018B2/',$hex_eui)))
+    continue;
   $more_data=TRUE;
   $to_date=t_str_chg(date(DateTime::ISO8601));
   print($to_date);print("\n");
@@ -63,30 +65,33 @@ foreach($res as $cur_res){
     foreach($r as $packet){
       $p_data[$packet->timestamp]=$packet->value->payload;
     }
+
+    if(preg_match('/^70B3D5/',$hex_eui)){// NKE watteco
     // Verify the type of packet and only keeps the good ones
     $data_ok=preg_grep("/^110a00560000411b250/",$p_data);
-    if(count($data_ok)==0) $more_data=FALSE;
-    foreach($data_ok as $ts=>$p){//loop on packets
-      $eait=1.0*hexdec(substr($p, -10,8));
-      $east=1.0*hexdec(substr($p, -18,8));
-      $t=strtotime($ts);
-      if($t<strtotime($to_date)) {$to_date=$ts;}
-      // inserting will fail if data already exists.
-      if(!$insert_stmt->execute(array($dec_eui,$t,$eait,$east))){$more_data=FALSE;}
+      if(count($data_ok)==0) $more_data=FALSE;
+      foreach($data_ok as $ts=>$p){//loop on packets
+        $eait=1.0*hexdec(substr($p, -10,8));
+        $east=1.0*hexdec(substr($p, -18,8));
+        $t=strtotime($ts);
+        if($t<strtotime($to_date)) {$to_date=$ts;}
+        // inserting will fail if data already exists.
+        if(!$insert_stmt->execute(array($dec_eui,$t,$eait,$east))){$more_data=FALSE;}
+      }
     }
-    print_r($p_data);
-    $data_ok=preg_grep("/^49/",$p_data);// Adeunis
-    if(count($data_ok)==0) $more_data=(FALSE || $more_data);
-    foreach($data_ok as $ts=>$p){//loop on packets
-      $eait=1.0*hexdec(substr($p, -16,8));
-      $east=1.0*hexdec(substr($p, -8,8));
-      $t=strtotime($ts);
-//       print_r($ts."  ".$eait."  ".$east." ".$t."\n");
-      if($t<strtotime($to_date)) {$to_date=$ts;}
-      // inserting will fail if data already exists.
-      if(!$insert_stmt->execute(array($dec_eui,$t,$eait,$east))){$more_data=FALSE;}
+    else if(preg_match('/^0018B2/',$hex_eui)){// Adeunis
+      $data_ok=preg_grep("/^49/",$p_data);
+      if(count($data_ok)==0) $more_data=(FALSE);
+      foreach($data_ok as $ts=>$p){//loop on packets
+        $eait=1.0*hexdec(substr($p, -16,8));
+        $east=1.0*hexdec(substr($p, -8,8));
+        $t=strtotime($ts);
+//      print_r($ts."  ".$eait."  ".$east." ".$t."\n");
+        if($t<strtotime($to_date)) {$to_date=$ts;}
+        // inserting will fail if data already exists.
+        if(!$insert_stmt->execute(array($dec_eui,$t,$eait,$east))){$more_data=FALSE;}
+      }
     }
-    print_r($ts);print("\n");
   }
 //  update fisrtts, lastts
   $qr = "update ".tp."ticmeters set fisrtts=(select min(ts) from ".tp."ticreadings where deveui=$dec_eui) where deveui=$dec_eui and fisrtts is null";
