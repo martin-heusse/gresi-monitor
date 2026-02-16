@@ -3,7 +3,7 @@ require_once "constants.php";
 require_once "ids.php"; // Contains the identifier + Password to connect to RTone web API, + to connect to DB
 require_once "common.php"; 
 
-$initialNbWeeks = 1; // if 0, retrieve from first meter connection. Otherwise, just get last $initialNbWeeks weeks
+$initialNbWeeks = 0; // if 0, retrieve from first meter connection. Otherwise, just get last $initialNbWeeks weeks
 
 $db = connect_to_db();
 if(is_null($db)) exit;
@@ -137,34 +137,74 @@ foreach($res as $cur_res){
     foreach($r as $packet){
       $p_data[$packet->timestamp]=$packet->value->payload;
     }
-    // Verify the type of packet and only keeps the good ones
-    $data_ok=preg_grep("/^110a005700004120070/",$p_data);
-    // The TIC info is in local time
-    date_default_timezone_set("Europe/Paris");
-    if(count($data_ok)==0) $more_data=FALSE;
+    if(preg_match('/^70B3D5/',$hex_eui)){// NKE watteco  
+      // Verify the type of packet and only keeps the good ones
+      $data_ok=preg_grep("/^110a005700004120070/",$p_data);
+      // The TIC info is in local time
+      date_default_timezone_set("Europe/Paris");
       foreach($data_ok as $ts=>$p){//loop on packets
-      $str_day=hexdec(substr($p, 32,2));
-      $str_month=hexdec(substr($p, 34,2));
-      $str_year=hexdec(substr($p, 36,2));
-      $str_h=hexdec(substr($p, 38,2));
-      $str_mn=hexdec(substr($p, 40,2));
-      $dat_date=strtotime("20$str_year-$str_month-$str_day $str_h:$str_mn:00");
-      for($i=0;$i<6;$i++){
-        $t=$dat_date-$i*10*60; //Go back in time 10mn for each data
-        $pi = hexdec(substr($p, 44+$i*4,4));
-        if(!$insert_stmt_pi->execute(array($dec_eui,$t,$pi))){$more_data=FALSE;}
+        $str_day=hexdec(substr($p, 32,2));
+        $str_month=hexdec(substr($p, 34,2));
+        $str_year=hexdec(substr($p, 36,2));
+        $str_h=hexdec(substr($p, 38,2));
+        $str_mn=hexdec(substr($p, 40,2));
+        $dat_date=strtotime("20$str_year-$str_month-$str_day $str_h:$str_mn:00");
+        for($i=0;$i<6;$i++){
+          $t=$dat_date-$i*10*60; //Go back in time 10mn for each data
+          $pi = hexdec(substr($p, 44+$i*4,4));
+          if(!$insert_stmt_pi->execute(array($dec_eui,$t,$pi))){$more_data = FALSE;}
+        }
+        // update $to_date for next query, before rounding it for index storage
+        $t=strtotime($ts);
+        if($t<strtotime($to_date)) {$to_date=$ts;}
+  
+        // Now retrieve index
+        $str_date="20$str_year-$str_month-$str_day";
+        $eait=1.0*hexdec(substr($p, -6,6));
+        $east=1.0*hexdec(substr($p, -12,6));
+        $ptcour=hexdec(substr($p, 30,2)); # 7 -> HCE, 14 -> HPE, 18 -> P
+        $insert_stmt_index->execute(array($dec_eui,$str_date,$ptcour,$eait,$east));
       }
-      // update $to_date for next query, before rounding it for index storage
-      $t=strtotime($ts);
-      if($t<strtotime($to_date)) {$to_date=$ts;}
-
-      // Now retrieve index
-      $str_date="20$str_year-$str_month-$str_day";
-      $eait=1.0*hexdec(substr($p, -6,6));
-      $east=1.0*hexdec(substr($p, -12,6));
-      $ptcour=hexdec(substr($p, 30,2)); # 7 -> HCE, 14 -> HPE, 18 -> P
-      $insert_stmt_index->execute(array($dec_eui,$str_date,$ptcour,$eait,$east));
     }
+    else if(preg_match('/^0018B2/',$hex_eui)){// Adeunis
+      print("More data: $more_data \n");
+      $data_ok=preg_grep("/^49/",$p_data);
+      foreach($data_ok as $ts=>$p){//loop on packets
+        $str_day=hexdec(substr($p, 10,2));
+        $str_month=hexdec(substr($p, 12,2));
+        $str_year=hexdec(substr($p, 14,2));
+        $str_h=hexdec(substr($p, 16,2));
+        $str_mn=hexdec(substr($p, 18,2));
+        $dat_date=strtotime("20$str_year-$str_month-$str_day $str_h:$str_mn:00");
+        for($i=0;$i<6;$i++){
+          $t=$dat_date-$i*10*60; //Go back in time 10mn for each data
+          $pi = hexdec(substr($p, 22+$i*8,8));
+          if(!$insert_stmt_pi->execute(array($dec_eui,$t,$pi)) && $i==5){$more_data=FALSE;}
+        }
+        // update $to_date for next query, before rounding it for index storage
+        $t=strtotime($ts);
+        if($t<strtotime($to_date)) {$to_date=$ts;}
+        // Now retrieve index
+        $str_date="20$str_year-$str_month-$str_day";
+        $eait=1.0*hexdec(substr($p, -8,8));
+        $east=1.0*hexdec(substr($p, -16,8));
+        $ptcourstr=hex2bin(substr($p, 4,6)); # 7 -> HCE, 14 -> HPE, 18 -> P
+        switch(true){
+          case preg_match("/HCE/",$ptcourstr):
+            $ptcour=7; break;
+          case preg_match("/HCH/",$ptcourstr):
+            $ptcour=8; break;
+          case preg_match("/HPE/",$ptcourstr):
+            $ptcour=14; break;
+          case preg_match("/HPH/",$ptcourstr):
+            $ptcour=15; break;
+          default:
+            $ptcour=18;
+        }
+        $insert_stmt_index->execute(array($dec_eui,$str_date,$ptcour,$eait,$east));
+      }
+    }
+    print("More data: $more_data \n");
   }
 //  update fisrtts, lastts
   $qr = "update ".tp."ticpmepmimeters set fisrtts=(select min(ts) from ".tp."ticpmepmireadings where deveui=$dec_eui) where deveui=$dec_eui and fisrtts is null";
