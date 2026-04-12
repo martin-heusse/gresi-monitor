@@ -169,6 +169,8 @@ foreach($res as $cur_res){
     else if(preg_match('/^0018B2/',$hex_eui)){// Adeunis
       print("More data: $more_data \n");
       $data_ok=preg_grep("/^49/",$p_data);
+      // The TIC info is in local time
+      date_default_timezone_set("Europe/Paris");
       foreach($data_ok as $ts=>$p){//loop on packets
         $str_day=hexdec(substr($p, 10,2));
         $str_month=hexdec(substr($p, 12,2));
