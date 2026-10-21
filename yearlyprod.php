@@ -7,6 +7,7 @@ require_once "common.php";
 $MAX_YEARS=10;
 
 function getMeterProd($db,$m,$from,$to){
+  $total=0;
   if(strcmp($m['family'],"rbee")==0){
     $qr="select  sum(prod)/1000 as tot from ".tp."readings r where r.ts between $from and $to and r.serial=".$m["serial"];
     $select_messages = $db->prepare($qr);
@@ -28,7 +29,7 @@ function getMeterProd($db,$m,$from,$to){
     $select_messages->setFetchMode(PDO::FETCH_ASSOC);
     $select_messages->execute($reqArgs);
     $readings =$select_messages->fetchAll();
-    $eait1=$readings[0]['eait'];
+    $eait1=$readings[0]['eait'] ?? null;
 
     $reqArgs=array($m['serial'],$to);
     $qr="select eait from ".tp."ticreadings where deveui=? and ts<? order by ts desc limit 1";
@@ -36,9 +37,9 @@ function getMeterProd($db,$m,$from,$to){
     $select_messages->setFetchMode(PDO::FETCH_ASSOC);
     $select_messages->execute($reqArgs);
     $readings =$select_messages->fetchAll();
-    $eait2=$readings[0]['eait'];
+    $eait2=$readings[0]['eait'] ?? null;
 
-    if(is_null($eait1)) $total=0;
+    if(is_null($eait1) || is_null($eait2)) $total=0;
     else $total=($eait2-$eait1)/1000;
     if ($total<0) $total=NULL;
   }
@@ -72,7 +73,7 @@ $yn=date("Y");
 // Première année ? sera $ys
 $ys=$yn;
 foreach($meters as $m){
-  $y=date("Y",$m["fisrtts"]);
+  $y=date("Y",(int)$m["fisrtts"]);
   if($y<$ys){$ys=$y;};
 }
 $nbYears=$yn-$ys+1;
@@ -92,9 +93,9 @@ foreach($meters as $m){
 //ex :  [family] => rbee [serial] => 211412449 [name] => 211412449 [fisrtts] => 1604151600 [lastts] => 1634083200 [peak_power] => 9 [timeoffset] => 0
   echo "<TR>";
   echo "<TD>".$m["name"]."</TD>";
-  $y0=date("y",$m["fisrtts"]);
-  $m0=date("m",$m["fisrtts"]);
-  $d0=date("d",$m["fisrtts"]);
+  $y0=date("y",(int)$m["fisrtts"]);
+  $m0=date("m",(int)$m["fisrtts"]);
+  $d0=date("d",(int)$m["fisrtts"]);
   echo "<TD> $d0/$m0/$y0 </TD>";
   $y0=$ys;
   for ($i=0;$i<$nbYears;$i++){
@@ -102,13 +103,13 @@ foreach($meters as $m){
     $to=strtotime("$y0-$m0-$d0");
     $curprd=getMeterProd($db,$m,$from,$to);
     $j=2*$i;
-    echo "<TD class=prod$j$tab align='right'> ".round($curprd,1)."    </TD>";
+    echo "<TD class=prod$j$tab align='right'> ".round($curprd ?? 0,1)."    </TD>";
     $from=$to;
     $y1=$y0+1;
     $to=strtotime("$y1-01-01");
     $curprd=getMeterProd($db,$m,$from,$to);
     $j=2*$i+1;
-    echo "<TD class=prod$j$tab align='right'> ".round($curprd,1)."    </TD>";
+    echo "<TD class=prod$j$tab align='right'> ".round($curprd ?? 0,1)."    </TD>";
     $y0=$y1;
   }
   echo "</TR>\n";
@@ -127,9 +128,9 @@ echo "</TR>";
 foreach($meters as $m){
   echo "<TR>";
   echo "<TD>".$m["name"]."</TD>";
-  $y0=date("Y",$m["fisrtts"]);
-  $m0=date("m",$m["fisrtts"]);
-  $d0=date("d",$m["fisrtts"]);
+  $y0=date("Y",(int)$m["fisrtts"]);
+  $m0=date("m",(int)$m["fisrtts"]);
+  $d0=date("d",(int)$m["fisrtts"]);
   $from=$m["fisrtts"];
   echo "<TD> $d0/$m0/$y0 </TD>";
 
@@ -138,7 +139,7 @@ foreach($meters as $m){
     $y2=$y1+1;
     $from=strtotime("$y1-01-01");$to=strtotime("$y2-01-01");
     $curprd=getMeterProd($db,$m,$from,$to);
-    echo "<TD class=prod$i$tab align='right'> ".round($curprd,1)."    </TD>";
+    echo "<TD class=prod$i$tab align='right'> ".round($curprd ?? 0,1)."    </TD>";
   }
   echo "</TR>\n";
 }
@@ -167,16 +168,16 @@ foreach($meters as $m){
 //ex : serial] => 210000217 [name] => name [localization] => [fisrtts] => 1512994200 [lastts] => 1518526200 [peak_power] => 8.1 [timeoffset] => 1200 
   echo "<TR>";
   echo "<TD>".$m["name"]."</TD>";
-  $y0=date("Y",$m["fisrtts"]);
-  $m0=date("m",$m["fisrtts"]);
-  $d0=date("d",$m["fisrtts"]);
+  $y0=date("Y",(int)$m["fisrtts"]);
+  $m0=date("m",(int)$m["fisrtts"]);
+  $d0=date("d",(int)$m["fisrtts"]);
   $from=$m["fisrtts"];
   echo "<TD> $d0/$m0/$y0 </TD>";
   $y1=$y0+1;
   for ($i=0;$i<$MAX_YEARS;$i++){
     $to=strtotime("$y1-$m0-$d0");
     $curprd=getMeterProd($db,$m,$from,$to);
-    echo "<TD class=prod$i$tab align='right'> ".round($curprd,1)."    </TD>";
+    echo "<TD class=prod$i$tab align='right'> ".round($curprd ?? 0,1)."    </TD>";
     $grandTotal+=$curprd;
     $from=$to;$y1=$y1+1;
   }

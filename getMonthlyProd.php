@@ -31,6 +31,7 @@ $serial=$_GET['serial'];
 
 header('Content-Type: application/json');
 
+$retreadings = [];
 if(strcmp($_GET['family'], "rbee")==0) {
 
   $retreadings["rbee_".$serial] = get_rbee_prod(
