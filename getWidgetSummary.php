@@ -30,7 +30,7 @@ foreach(array('month'=>$thisMonth,'year'=>$thisYear,'total'=>0) as $what=>$start
   $qr="select '$what',sum(prod)/1000 from ".tp."readings where ts >  $startts".$serialselect;
   $select_messages = $db->prepare($qr);
   $select_messages->setFetchMode(PDO::FETCH_KEY_PAIR);
-  $select_messages->execute($reqArgs);
+  $select_messages->execute();
   $sum =$sum+$select_messages->fetchAll();
 }
 header('Content-Type: application/json');

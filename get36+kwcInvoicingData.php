@@ -11,7 +11,8 @@ $db = connect_to_db();
 // TODO - Or get_meter_list_origin()?
 $meters = get_meter_list($db, 36);
 
-$render_csv = $_POST['csv'] !== null ? true : false;
+$render_csv = isset($_POST['csv']) ? true : false;
+$data = [];
 
 foreach ($meters as $meter) {
     $installation_date = (new DateTime('@'.$meter["fisrtts"]))->setTime(0, 0, 0);
